@@ -1,0 +1,19 @@
+# Node modules
+**/node_modules/
+
+# Env files
+**/.env
+**/.env.local
+**/.env.production
+
+# Build folders
+**/build/
+**/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backend uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
