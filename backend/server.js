@@ -21,25 +21,27 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS — autorise le frontend React
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "https://stately-cuchufli-eb7aa3.netlify.app"
-];
-
+// CORS — autorise le frontend React (localhost + toutes URLs Netlify)
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      // Autoriser : absence d'origin (ex: Postman), localhost, et *.netlify.app
+      if (
+        !origin ||
+        origin.includes("localhost") ||
+        origin.endsWith(".netlify.app") ||
+        origin === process.env.CLIENT_URL
+      ) {
         callback(null, true);
       } else {
+        console.log("CORS blocked origin:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
   })
 );
+
 
 // Parser JSON
 app.use(express.json());
