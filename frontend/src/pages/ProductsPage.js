@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 import Notification   from "../components/Notification";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -47,6 +48,7 @@ const fadeInUp = {
 
 function ProductsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // ── Vérification admin ───────────────────────────────────────
   const user    = JSON.parse(localStorage.getItem("user") || "null");
@@ -101,24 +103,24 @@ function ProductsPage() {
       setProducts(res.data);
     } catch (err) {
       console.error("Erreur fetch produits :", err);
-      showNotification("error", "Erreur lors du chargement des produits");
+      showNotification("error", t("products.error_fetch"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   // ── Validation ───────────────────────────────────────────────
   const validateForm = () => {
     const errors = {};
-    if (!name.trim())        errors.name        = "Le nom est requis";
-    if (!description.trim()) errors.description = "La description est requise";
-    if (ingredients.length === 0) errors.ingredients = "Au moins un ingrédient est requis";
+    if (!name.trim())        errors.name        = t("products.name_required") || "Le nom est requis";
+    if (!description.trim()) errors.description = t("products.desc_required") || "La description est requise";
+    if (ingredients.length === 0) errors.ingredients = t("products.ingredients_required") || "Au moins un ingrédient est requis";
     if (!variants.some(v => v.price && Number(v.price) > 0))
-      errors.variants = "Au moins une variante avec un prix valide est requise";
+      errors.variants = t("products.variants_required") || "Au moins une variante avec un prix valide est requise";
     if (!images.some(img => img !== null) && !editingProduct)
-      errors.images = "Au moins une image est requise";
+      errors.images = t("products.images_required") || "Au moins une image est requise";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -190,10 +192,10 @@ function ProductsPage() {
     try {
       if (editingProduct) {
         await axios.put(`${API_URL}/${editingProduct._id}`, formData, config);
-        showNotification("success", "Produit modifié avec succès");
+        showNotification("success", t("products.edit_success"));
       } else {
         await axios.post(`${API_URL}/add`, formData, config);
-        showNotification("success", "Produit ajouté avec succès");
+        showNotification("success", t("products.add_success"));
       }
       setTimeout(() => setUploadProgress(0), 1000);
       resetForm();
@@ -206,7 +208,7 @@ function ProductsPage() {
       } else if (err.response?.status === 403) {
         showNotification("error", "Accès refusé : réservé aux administrateurs");
       } else {
-        showNotification("error", "Erreur lors de l'enregistrement du produit");
+        showNotification("error", t("products.error_save") || "Erreur lors de l'enregistrement du produit");
       }
       setUploadProgress(0);
     }
@@ -226,11 +228,11 @@ function ProductsPage() {
 
   // ── Delete ───────────────────────────────────────────────────
   const handleDelete = async (id) => {
-    if (!window.confirm("Voulez-vous vraiment supprimer ce produit ?")) return;
+    if (!window.confirm(t("products.delete_confirm"))) return;
     try {
       await axios.delete(`${API_URL}/${id}`, { headers: getAuthHeaders() });
       fetchProducts();
-      showNotification("success", "Produit supprimé avec succès");
+      showNotification("success", t("products.delete_success"));
     } catch (err) {
       if (err.response?.status === 401) {
         showNotification("error", "Session expirée, veuillez vous reconnecter");
@@ -373,8 +375,8 @@ function ProductsPage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       <span className="absolute top-4 left-4 bg-[var(--primary-color)] text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
                         {quickViewProduct.type === "Zrir"
-                          ? <><FaCrown size={12} /> Signature</>
-                          : <><FaSeedling size={12} /> Naturel</>
+                          ? <><FaCrown size={12} /> {t('products.signature')}</>
+                          : <><FaSeedling size={12} /> {t('products.natural')}</>
                         }
                       </span>
                     </div>
@@ -409,7 +411,7 @@ function ProductsPage() {
                       <div className="mb-6">
                         <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
                           <FaMortarPestle className="text-[var(--primary-color)]" />
-                          Ingrédients naturels
+                          {t('products.ingredients_natural') || t('products.ingredients')}
                         </h3>
                         <div className="flex flex-wrap gap-2">
                           {quickViewProduct.ingredients.map((ing, idx) => (
@@ -424,7 +426,7 @@ function ProductsPage() {
                     <div className="mb-6">
                       <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <FaWeightHanging className="text-[var(--primary-color)]" />
-                        Formats disponibles
+                        {t('products.available_formats')}
                       </h3>
                       <div className="grid grid-cols-3 gap-3">
                         {quickViewProduct.variants?.filter(v => v.price > 0).map((v, idx) => (
@@ -442,24 +444,24 @@ function ProductsPage() {
                         className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition flex items-center justify-center gap-2 font-medium"
                       >
                         {wishlist.includes(quickViewProduct._id)
-                          ? <><FaHeart className="text-red-500" /> Favori</>
-                          : <><FaRegHeart /> Favoris</>
+                          ? <><FaHeart className="text-red-500" /> {t('products.favorite')}</>
+                          : <><FaRegHeart /> {t('products.favorites')}</>
                         }
                       </button>
                       <button className="flex-1 bg-[var(--secondary-color)] text-white py-3 rounded-xl hover:bg-[var(--primary-color)] transition flex items-center justify-center gap-2 font-medium">
-                        <FaShoppingCart /> Ajouter
+                        <FaShoppingCart /> {t('products.add_to_cart')}
                       </button>
                     </div>
 
                     <div className="mt-5 pt-5 border-t border-gray-100 flex flex-wrap gap-2">
                       <span className="bg-[var(--primary-color)] bg-opacity-10 text-[var(--primary-color)] px-3 py-1 rounded-full text-xs flex items-center gap-1 border border-[var(--primary-color)] border-opacity-20">
-                        <FaLeaf /> 100% Naturel
+                        <FaLeaf /> {t('products.natural')}
                       </span>
                       <span className="bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs flex items-center gap-1 border border-amber-200">
-                        <FaAward /> Artisanal
+                        <FaAward /> {t('products.artisanal')}
                       </span>
                       <span className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs flex items-center gap-1 border border-purple-200">
-                        <FaRegGem /> Premium
+                        <FaRegGem /> {t('products.premium')}
                       </span>
                     </div>
                   </div>
@@ -488,9 +490,9 @@ function ProductsPage() {
               transition={{ delay: 0.2 }}
               className="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-800 mb-4"
             >
-              Nos{" "}
-              <span className="text-[var(--primary-color)]">Produits</span>{" "}
-              <span className="text-[var(--secondary-color)]">Artisanaux</span>
+              {t('products.title_1')}{" "}
+              <span className="text-[var(--primary-color)]">{t('products.title_2')}</span>{" "}
+              <span className="text-[var(--secondary-color)]">{t('products.title_3')}</span>
             </motion.h1>
             <motion.p
               initial={{ y: 20, opacity: 0 }}
@@ -498,10 +500,7 @@ function ProductsPage() {
               transition={{ delay: 0.4 }}
               className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
             >
-              Découvrez l'authenticité de la tradition tunisienne à travers nos{" "}
-              <span className="text-[var(--primary-color)] font-semibold">Zrir</span> et{" "}
-              <span className="text-[var(--secondary-color)] font-semibold">Bsissa</span>,
-              préparés avec des ingrédients 100% naturels
+              {t('products.subtitle')}
             </motion.p>
             <motion.div
               initial={{ scaleX: 0 }}
@@ -526,8 +525,8 @@ function ProductsPage() {
               style={{ boxShadow: "0 8px 24px -8px var(--secondary-color)" }}
             >
               {formVisible
-                ? <><FaTimes className="group-hover:rotate-90 transition-transform duration-300" /> Annuler</>
-                : <><FaPlus className="group-hover:rotate-180 transition-transform duration-300" /> Nouveau produit</>
+                ? <><FaTimes className="group-hover:rotate-90 transition-transform duration-300" /> {t('products.cancel')}</>
+                : <><FaPlus className="group-hover:rotate-180 transition-transform duration-300" /> {t('products.new_product')}</>
               }
             </button>
           </motion.div>
@@ -544,7 +543,7 @@ function ProductsPage() {
             >
               <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 border-2 border-[var(--primary-color)] border-opacity-20">
                 <h2 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] bg-clip-text text-transparent">
-                  {editingProduct ? "✨ Modifier le produit" : "✨ Ajouter un nouveau produit"}
+                  {editingProduct ? `✨ ${t('products.edit_product')}` : `✨ ${t('products.add_product')}`}
                 </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -554,7 +553,7 @@ function ProductsPage() {
                     <div className="space-y-6">
                       <div>
                         <label className="block text-base font-medium text-gray-700 mb-2">
-                          Nom du produit <span className="text-red-500">*</span>
+                          {t('products.name')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text" value={name}
@@ -566,25 +565,25 @@ function ProductsPage() {
                       </div>
 
                       <div>
-                        <label className="block text-base font-medium text-gray-700 mb-2">Type de produit</label>
+                        <label className="block text-base font-medium text-gray-700 mb-2">{t('products.filter_type')}</label>
                         <select
                           value={type} onChange={e => setType(e.target.value)}
                           className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)]"
                         >
-                          <option value="Zrir">Zrir — Énergie et vitalité</option>
-                          <option value="Bsissa">Bsissa — Douceur et tradition</option>
+                          <option value="Zrir">{t('home.zrir_label') || "Zrir"}</option>
+                          <option value="Bsissa">{t('home.bsissa_label') || "Bsissa"}</option>
                         </select>
                       </div>
 
                       <div>
                         <label className="block text-base font-medium text-gray-700 mb-2">
-                          Description <span className="text-red-500">*</span>
+                          {t('products.description')} <span className="text-red-500">*</span>
                         </label>
                         <textarea
                           value={description} onChange={e => setDescription(e.target.value)}
                           rows="4"
                           className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] ${formErrors.description ? "border-red-500" : "border-gray-300"}`}
-                          placeholder="Description détaillée du produit..."
+                          placeholder="..."
                         />
                         {formErrors.description && <p className="mt-1 text-sm text-red-500">{formErrors.description}</p>}
                       </div>
@@ -594,7 +593,7 @@ function ProductsPage() {
                     <div className="space-y-6">
                       <div>
                         <label className="block text-base font-medium text-gray-700 mb-2">
-                          Ingrédients <span className="text-red-500">*</span>
+                          {t('products.ingredients')} <span className="text-red-500">*</span>
                         </label>
                         <div className="mb-3 flex flex-wrap gap-2 min-h-[2rem]">
                           {ingredients.map((ing, index) => (
@@ -623,7 +622,7 @@ function ProductsPage() {
                           <button type="button" onClick={handleAddIngredient}
                             className="bg-gradient-to-r from-[var(--secondary-color)] to-[var(--primary-color)] text-white px-4 py-3 rounded-xl hover:shadow-lg transition-all flex items-center gap-2"
                           >
-                            <FaPlusCircle /> Ajouter
+                            <FaPlusCircle /> {t('products.add')}
                           </button>
                         </div>
                         {formErrors.ingredients && <p className="mt-2 text-sm text-red-500">{formErrors.ingredients}</p>}
@@ -633,7 +632,7 @@ function ProductsPage() {
                       </div>
 
                       <div>
-                        <label className="block text-base font-medium text-gray-700 mb-2">Variantes (prix en DT)</label>
+                        <label className="block text-base font-medium text-gray-700 mb-2">{t('products.variants')}</label>
                         <div className="space-y-3">
                           {variants.map((v, i) => (
                             <div key={i} className="flex items-center gap-3">
@@ -659,7 +658,7 @@ function ProductsPage() {
 
                       <div>
                         <label className="block text-base font-medium text-gray-700 mb-2">
-                          Images <span className="text-red-500">*</span>
+                          {t('products.images')} <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 gap-3">
                           {[0, 1, 2, 3].map((index) => (
@@ -688,7 +687,7 @@ function ProductsPage() {
                                   <button type="button" onClick={() => setMainImageIndex(index)}
                                     className="absolute bottom-1 left-1 bg-white text-gray-600 text-xs px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow"
                                   >
-                                    Principale
+                                    {t('products.main_image')}
                                   </button>
                                 </div>
                               ) : (
@@ -731,12 +730,12 @@ function ProductsPage() {
                     <button type="button" onClick={resetForm}
                       className="px-8 py-3 border-2 border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition font-semibold"
                     >
-                      Annuler
+                      {t('products.cancel')}
                     </button>
                     <button type="submit"
                       className="px-8 py-3 bg-gradient-to-r from-[var(--secondary-color)] to-[var(--primary-color)] text-white rounded-xl hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold"
                     >
-                      {editingProduct ? "Modifier" : "Ajouter"} le produit
+                      {editingProduct ? t('products.submit_edit') : t('products.submit_add')}
                     </button>
                   </div>
                 </form>
@@ -753,7 +752,7 @@ function ProductsPage() {
                 <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                 <input
                   type="text"
-                  placeholder="Rechercher un produit ou ingrédient…"
+                  placeholder={t('products.search_placeholder')}
                   value={searchTerm}
                   onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                   className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[var(--secondary-color)] focus:ring-2 focus:ring-[var(--secondary-color)] focus:ring-opacity-20 transition-all text-sm"
@@ -769,7 +768,7 @@ function ProductsPage() {
                 }`}
               >
                 <FaFilter size={13} />
-                Filtres
+                {t('products.filters')}
                 {showFilters ? <FaChevronUp size={11} /> : <FaChevronDown size={11} />}
               </button>
             </div>
