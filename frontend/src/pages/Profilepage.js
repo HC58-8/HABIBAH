@@ -9,8 +9,9 @@ import {
   FaExclamationCircle, FaKey, FaBox
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
+import { API } from "../config/api";
 
-const API_URL = process.env.REACT_APP_API_URL?.replace("/api/products", "") || "http://localhost:5000";
+const API_URL = API.USERS;
 const ADMIN_EMAIL = "zrirhabibah@gmail.com";
 
 const fadeUp = {
@@ -45,7 +46,7 @@ function ProfilePage() {
   // Rafraîchir le profil depuis l'API
   useEffect(() => {
     if (!token) return;
-    axios.get(`${API_URL}/api/users/profile`, {
+    axios.get(`${API_URL}/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => {
@@ -75,7 +76,7 @@ function ProfilePage() {
     setLoading(true);
     try {
       const res = await axios.put(
-        `${API_URL}/api/users/profile`,
+        `${API_URL}/profile`,
         form,
         { headers: { Authorization: `Bearer ${token}` } }
       );
