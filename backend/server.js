@@ -56,8 +56,10 @@ app.use("/api/orders", orderRoutes); // <-- Routes commandes
 
 // Add explicit alias for google-login and login to fix deployed frontend URLs
 const userController = require("./controllers/userController");
+const productController = require("./controllers/productController");
 app.post("/api/google-login", userController.googleLogin);
 app.post("/api/login", userController.login);
+app.get("/api", productController.getProducts); // Alias pour les vieux déploiements Netlify qui font GET /api au lieu de GET /api/products
 
 // ==================== ROUTE TEST ====================
 app.get("/", (req, res) => {
