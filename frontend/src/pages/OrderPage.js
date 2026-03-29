@@ -6,6 +6,7 @@ import {
   FaArrowLeft, FaCheck, FaUser, FaPhone,
   FaMapMarkerAlt, FaShoppingBag, FaSpinner
 } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 import { useCart } from "../context/CartContext";
 import PageHeader from "../components/PageHeader";
 
@@ -14,6 +15,7 @@ const USER_API = process.env.REACT_APP_API_URL || "http://localhost:5000/api/use
 
 function OrderPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { cartItems, totalPrice, clearCart } = useCart();
   
   // États
@@ -150,12 +152,12 @@ function OrderPage() {
       <div className="min-h-screen bg-[#FCFAED] pt-24 flex items-center justify-center">
         <div className="text-center">
           <FaShoppingBag className="mx-auto text-gray-300 mb-4" size={64} />
-          <p className="text-xl text-gray-500 mb-4">Votre panier est vide</p>
+          <p className="text-xl text-gray-500 mb-4">{t('cart.empty')}</p>
           <button
             onClick={() => navigate("/")}
             className="px-6 py-3 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] transition font-semibold"
           >
-            Découvrir nos produits
+            {t('home.explore_btn')}
           </button>
         </div>
       </div>
@@ -170,10 +172,10 @@ function OrderPage() {
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <FaCheck className="text-green-500" size={36} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Commande confirmée !</h2>
-          <p className="text-gray-600 mb-2">Merci pour votre commande.</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('order.success_title')}</h2>
+          <p className="text-gray-600 mb-2">{t('order.success_msg')}</p>
           <p className="text-gray-500 text-sm mb-4">
-            Nous vous contacterons au <strong>{form.phone}</strong> pour confirmer la livraison.
+            {t('order.contact_msg', { phone: form.phone })}
           </p>
           {user && (
             <div className="text-xs text-gray-400 mb-8">
@@ -185,7 +187,7 @@ function OrderPage() {
             onClick={() => navigate("/")}
             className="w-full px-6 py-3 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] transition font-bold"
           >
-            Retour à l'accueil
+            {t('navbar.home')}
           </button>
         </div>
       </div>
@@ -195,10 +197,10 @@ function OrderPage() {
   // ── Validation ───────────────────────────────────────────────
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = "Le nom est requis";
-    if (!form.phone.trim()) e.phone = "Le numéro est requis";
-    else if (!/^[0-9+\s]{8,15}$/.test(form.phone)) e.phone = "Numéro invalide (8-15 chiffres)";
-    if (!form.address.trim()) e.address = "L'adresse est requise";
+    if (!form.name.trim()) e.name = t('order.errors.name');
+    if (!form.phone.trim()) e.phone = t('order.errors.phone');
+    else if (!/^[0-9+\s]{8,15}$/.test(form.phone)) e.phone = t('order.errors.phone_invalid');
+    if (!form.address.trim()) e.address = t('order.errors.address');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -285,9 +287,9 @@ function OrderPage() {
         
         // Message d'erreur plus précis
         if (err.response.data?.message) {
-          alert(`Erreur: ${err.response.data.message}`);
+          alert(`${t('contact.err_msg')}: ${err.response.data.message}`);
         } else {
-          alert("Une erreur est survenue lors de la création de la commande.");
+          alert(t('products.error_save'));
         }
       } else if (err.request) {
         console.error("🌐 Pas de réponse du serveur:", err.request);
@@ -310,14 +312,14 @@ function OrderPage() {
     <div className="min-h-screen bg-[#FCFAED] pt-24 pb-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <PageHeader title="Commander" subtitle="Finalisez votre commande" />
+        <PageHeader title={t('order.title')} subtitle={t('order.subtitle')} />
 
         {/* Bouton retour */}
         <button
           onClick={() => navigate("/panier")}
           className="flex items-center gap-2 mb-6 text-[var(--primary-color)] hover:text-[var(--secondary-color)] font-semibold transition"
         >
-          <FaArrowLeft /> Retour au panier
+          <FaArrowLeft /> {t('order.back_to_cart')}
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -334,7 +336,7 @@ function OrderPage() {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-gray-700">
-                      Connecté en tant que : {user.email}
+                      {t('cart.logged_as')} : {user.email}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs">
@@ -355,7 +357,7 @@ function OrderPage() {
               )}
 
               <h2 className="text-xl font-bold text-[var(--primary-color)] mb-5 flex items-center gap-2">
-                <FaUser /> Vos informations
+                <FaUser /> {t('order.your_info')}
                 {loadingUser && <FaSpinner className="animate-spin text-sm" />}
               </h2>
 
@@ -369,7 +371,7 @@ function OrderPage() {
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   <FaUser className="inline mr-2 text-[var(--secondary-color)]" />
-                  Nom complet <span className="text-red-500">*</span>
+                  {t('order.full_name')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text" 
@@ -392,7 +394,7 @@ function OrderPage() {
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   <FaPhone className="inline mr-2 text-[var(--secondary-color)]" />
-                  Numéro de téléphone <span className="text-red-500">*</span>
+                  {t('order.phone')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel" 
@@ -412,7 +414,7 @@ function OrderPage() {
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   <FaMapMarkerAlt className="inline mr-2 text-[var(--secondary-color)]" />
-                  Adresse de livraison <span className="text-red-500">*</span>
+                  {t('order.address')} <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   name="address" 
@@ -431,7 +433,7 @@ function OrderPage() {
               {/* Note */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Note (optionnel)
+                  {t('order.note')}
                 </label>
                 <textarea
                   name="note" 
@@ -451,9 +453,9 @@ function OrderPage() {
               className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 shadow-lg font-bold text-lg"
             >
               {loading ? (
-                <><FaSpinner className="animate-spin" /> Envoi en cours...</>
+                <><FaSpinner className="animate-spin" /> {t('order.processing')}</>
               ) : (
-                <><FaCheck /> Confirmer la commande</>
+                <><FaCheck /> {t('order.confirm')}</>
               )}
             </button>
           </form>
@@ -462,7 +464,7 @@ function OrderPage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-[var(--primary-color)] sticky top-24">
               <h2 className="text-lg font-bold text-[var(--primary-color)] mb-4 flex items-center gap-2">
-                <FaShoppingBag /> Votre commande
+                <FaShoppingBag /> {t('cart.summary')}
               </h2>
 
               <div className="space-y-3 mb-4 max-h-64 overflow-y-auto pr-1">
@@ -488,12 +490,12 @@ function OrderPage() {
 
               <div className="border-t-2 border-dashed border-gray-200 pt-4">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-gray-700">Total</span>
+                  <span className="font-bold text-gray-700">{t('cart.total')}</span>
                   <span className="text-2xl font-bold text-[var(--secondary-color)]">
                     {totalPrice.toFixed(3)} DT
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-2 text-center">Paiement à la livraison</p>
+                <p className="text-xs text-gray-400 mt-2 text-center">{t('order.cod')}</p>
               </div>
             </div>
           </div>

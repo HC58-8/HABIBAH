@@ -5,11 +5,13 @@ import {
   FaTrash, FaPlus, FaMinus, FaShoppingCart, FaArrowLeft, FaArrowRight,
   FaHistory, FaSignInAlt
 } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 import { useCart } from "../context/CartContext";
 import PageHeader from "../components/PageHeader";
 
 function CartPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { cartItems, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
   
   // État pour savoir si l'utilisateur est connecté
@@ -83,16 +85,16 @@ function CartPage() {
             </button>
           </div>
           
-          <PageHeader title="Panier" subtitle="Vos produits sélectionnés" />
+          <PageHeader title={t('cart.title')} subtitle={t('cart.subtitle')} />
           
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
             <FaShoppingCart className="mx-auto text-gray-300 mb-4" size={64} />
-            <p className="text-xl text-gray-500 mb-6">Votre panier est vide</p>
+            <p className="text-xl text-gray-500 mb-6">{t('cart.empty')}</p>
             
             {/* Message si connecté */}
             {isLoggedIn && (
               <div className="mb-4 text-green-600">
-                ✅ Connecté en tant que {userEmail}
+                ✅ {t('cart.logged_as')} {userEmail}
               </div>
             )}
             
@@ -101,9 +103,9 @@ function CartPage() {
               <div className="mt-6">
                 <button
                   onClick={() => navigate("/my-orders")}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary-color)] text-white rounded-xl hover:bg-[var(--secondary-color)] transition font-semibold shadow-md"
+                   className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary-color)] text-white rounded-xl hover:bg-[var(--secondary-color)] transition font-semibold shadow-md"
                 >
-                  <FaHistory /> Mes commandes
+                  <FaHistory /> {t('cart.my_orders')}
                 </button>
               </div>
             )}
@@ -113,9 +115,9 @@ function CartPage() {
               <div className="mt-6">
                 <button
                   onClick={() => navigate("/account")}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-semibold shadow-md"
+                   className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-semibold shadow-md"
                 >
-                  <FaSignInAlt /> Se connecter
+                  <FaSignInAlt /> {t('cart.login')}
                 </button>
               </div>
             )}
@@ -123,9 +125,9 @@ function CartPage() {
             <div className="mt-4">
               <button
                 onClick={() => navigate("/")}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] transition font-semibold"
+                 className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] transition font-semibold"
               >
-                <FaArrowLeft /> Continuer mes achats
+                <FaArrowLeft /> {t('cart.continue_shopping')}
               </button>
             </div>
           </div>
@@ -140,29 +142,32 @@ function CartPage() {
 
        
 
-        <PageHeader title="Panier" subtitle={`${totalItems} article${totalItems > 1 ? "s" : ""} dans votre panier`} />
+        <PageHeader 
+          title={t('cart.title')} 
+          subtitle={t('cart.subtitle_plural', { count: totalItems })} 
+        />
 
         {/* Message utilisateur */}
         {isLoggedIn && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-green-700 flex justify-between items-center">
-            <span>✅ Connecté en tant que {userEmail}</span>
+            <span>✅ {t('cart.logged_as')} {userEmail}</span>
             <button
               onClick={() => navigate("/my-orders")}
-              className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+               className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
             >
-              Mes commandes
+              {t('cart.my_orders')}
             </button>
           </div>
         )}
 
         {!isLoggedIn && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-blue-700 flex justify-between items-center">
-            <span>🔐 Non connecté</span>
+            <span>🔐 {t('cart.not_logged_in')}</span>
             <button
               onClick={() => navigate("/account")}
-              className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
+               className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
             >
-              Se connecter
+              {t('cart.login')}
             </button>
           </div>
         )}
@@ -229,18 +234,18 @@ function CartPage() {
             ))}
 
             {/* Vider le panier */}
-            <button
+             <button
               onClick={clearCart}
               className="text-sm text-red-400 hover:text-red-600 transition flex items-center gap-2"
             >
-              <FaTrash size={12} /> Vider le panier
+              <FaTrash size={12} /> {t('cart.clear_cart')}
             </button>
           </div>
 
           {/* Récapitulatif */}
-          <div className="lg:col-span-1">
+           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-[var(--primary-color)] sticky top-24">
-              <h2 className="text-xl font-bold text-[var(--primary-color)] mb-4">Récapitulatif</h2>
+              <h2 className="text-xl font-bold text-[var(--primary-color)] mb-4">{t('cart.summary')}</h2>
 
               <div className="space-y-2 mb-4">
                 {cartItems.map(item => (
@@ -251,9 +256,9 @@ function CartPage() {
                 ))}
               </div>
 
-              <div className="border-t-2 border-dashed border-gray-200 pt-4 mb-6">
+               <div className="border-t-2 border-dashed border-gray-200 pt-4 mb-6">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-gray-700">Total</span>
+                  <span className="font-bold text-gray-700">{t('cart.total')}</span>
                   <span className="text-2xl font-bold text-[var(--secondary-color)]">
                     {totalPrice.toFixed(3)} DT
                   </span>
@@ -262,16 +267,16 @@ function CartPage() {
 
               <button
                 onClick={() => navigate("/commander")}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] transform hover:scale-105 transition-all duration-200 shadow-lg font-bold text-lg"
+                 className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] transform hover:scale-105 transition-all duration-200 shadow-lg font-bold text-lg"
               >
-                Passer la commande <FaArrowRight />
+                {t('cart.checkout')} <FaArrowRight />
               </button>
 
               <button
                 onClick={() => navigate("/")}
-                className="w-full mt-3 flex items-center justify-center gap-2 px-6 py-3 border-2 border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition font-medium"
+                 className="w-full mt-3 flex items-center justify-center gap-2 px-6 py-3 border-2 border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition font-medium"
               >
-                <FaArrowLeft size={14} /> Continuer mes achats
+                <FaArrowLeft size={14} /> {t('cart.continue_shopping')}
               </button>
             </div>
           </div>
