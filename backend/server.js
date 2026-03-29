@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const path = require("path");
+const initDb = require("./config/initDb");
 
 // ==================== ROUTES ====================
 const productRoutes = require("./routes/productRoutes");
@@ -68,6 +69,9 @@ app.use((err, req, res, next) => {
 // ==================== SERVER ====================
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Serveur lancé sur le port ${PORT}`);
+// Initialiser la DB puis démarrer le serveur
+initDb().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Serveur lancé sur le port ${PORT}`);
+  });
 });

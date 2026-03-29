@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { FaImage, FaShoppingCart, FaInfoCircle, FaEdit, FaTrash, FaCheck } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { getImageUrl } from "../config/api";
 
 const ProductCard = ({ product, isAdmin = false, onEdit, onDelete }) => {
   const navigate      = useNavigate();
@@ -41,7 +42,7 @@ const ProductCard = ({ product, isAdmin = false, onEdit, onDelete }) => {
         {product.images && product.images.length > 0 ? (
           <>
             <img
-              src={`http://localhost:5000${product.images[product.mainImageIndex || 0]}`}
+              src={getImageUrl(product.images[product.mainImageIndex || 0])}
               alt={product.name}
               className="w-full h-auto min-h-[12rem] object-cover"
             />

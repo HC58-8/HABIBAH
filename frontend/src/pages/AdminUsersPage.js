@@ -6,8 +6,9 @@ import {
   FaUsers, FaSpinner, FaTrash, FaSearch, FaUserShield, FaUser
 } from "react-icons/fa";
 import PageHeader from "../components/PageHeader";
+import { API } from "../config/api";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/users";
+const API_URL = API.USERS;
 const ADMIN_EMAIL = "zrirhabibah@gmail.com";
 
 function AdminUsersPage() {

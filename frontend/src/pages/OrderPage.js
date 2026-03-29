@@ -9,9 +9,10 @@ import {
 import { useTranslation } from "react-i18next";
 import { useCart } from "../context/CartContext";
 import PageHeader from "../components/PageHeader";
+import { API } from "../config/api";
 
-const ORDER_API = process.env.REACT_APP_ORDER_API || "http://localhost:5000/api/orders";
-const USER_API = process.env.REACT_APP_API_URL || "http://localhost:5000/api/users";
+const ORDER_API = API.ORDERS;
+const USER_API  = API.USERS;
 
 function OrderPage() {
   const navigate = useNavigate();

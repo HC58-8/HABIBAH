@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import logo from "../images/HabibahLOGO.png";
+import { API } from "../config/api";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/users";
+const API_URL = API.USERS;
 const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "630562961099-qulo0g9i2024pqbm6dcmkraooalt9fir.apps.googleusercontent.com";
 
 function AccountPage() {

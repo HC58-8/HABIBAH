@@ -6,12 +6,15 @@ import {
   FaArrowLeft, FaLeaf, FaShoppingCart, FaImage,
   FaStar, FaTag, FaBoxOpen, FaSpinner
 } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
+import { API, getImageUrl } from "../config/api";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/products";
+const API_URL = API.PRODUCTS;
 
 function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [product, setProduct]           = useState(null);
   const [loading, setLoading]           = useState(true);
@@ -30,7 +33,7 @@ function ProductDetailPage() {
         if (firstValid) setSelectedSize(firstValid.size);
       } catch (err) {
         console.error("Erreur fetch produit :", err);
-        setError("Produit introuvable");
+        setError(t("product_detail.not_found") || "Produit introuvable");
       } finally {
         setLoading(false);
       }
@@ -50,12 +53,12 @@ function ProductDetailPage() {
     return (
       <div className="min-h-screen bg-[#FCFAED] flex flex-col items-center justify-center gap-4">
         <FaBoxOpen className="text-gray-400" size={64} />
-        <p className="text-xl text-gray-500">{error || "Produit introuvable"}</p>
+        <p className="text-xl text-gray-500">{error || t("product_detail.not_found")}</p>
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 px-6 py-3 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] transition"
         >
-          <FaArrowLeft /> Retour
+          <FaArrowLeft /> {t("product_detail.back")}
         </button>
       </div>
     );
@@ -73,7 +76,7 @@ function ProductDetailPage() {
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 mb-8 text-[var(--primary-color)] hover:text-[var(--secondary-color)] font-semibold transition"
         >
-          <FaArrowLeft /> Retour aux produits
+          <FaArrowLeft /> {t("product_detail.back_to_products")}
         </button>
 
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-[var(--primary-color)] border-opacity-20">
@@ -85,7 +88,7 @@ function ProductDetailPage() {
               <div className="relative rounded-2xl overflow-hidden bg-gray-100 h-72 sm:h-96">
                 {validImages.length > 0 ? (
                   <img
-                    src={`http://localhost:5000${validImages[activeImage]}`}
+                    src={getImageUrl(validImages[activeImage])}
                     alt={product.name}
                     className="w-full h-full object-cover transition-all duration-300"
                   />
@@ -119,7 +122,7 @@ function ProductDetailPage() {
                       }`}
                     >
                       <img
-                        src={`http://localhost:5000${img}`}
+                        src={getImageUrl(img)}
                         alt={`vue ${i + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -148,7 +151,7 @@ function ProductDetailPage() {
               {/* Description */}
               <div>
                 <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                  Description
+                  {t("products.description")}
                 </h2>
                 <p className="text-gray-700 leading-relaxed text-base">
                   {product.description}
@@ -159,7 +162,7 @@ function ProductDetailPage() {
               <div>
                 <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
                   <FaLeaf className="inline text-[var(--primary-color)] mr-1" />
-                  Ingrédients
+                  {t("products.ingredients")}
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {product.ingredients?.map((ing, i) => (
@@ -176,7 +179,7 @@ function ProductDetailPage() {
               {/* Choix de taille */}
               <div>
                 <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                  Choisir une taille
+                  {t("product_detail.choose_size")}
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   {product.variants?.map((v, i) => (
@@ -203,7 +206,7 @@ function ProductDetailPage() {
               {/* Prix sélectionné */}
               {selectedVariant && (
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-500 text-sm">Prix :</span>
+                  <span className="text-gray-500 text-sm">{t("product_detail.price")} :</span>
                   <span className="text-3xl font-bold text-[var(--secondary-color)]">
                     {selectedVariant.price} DT
                   </span>
@@ -217,7 +220,7 @@ function ProductDetailPage() {
                 className="mt-auto flex items-center justify-center gap-3 px-8 py-4 bg-[var(--secondary-color)] text-white text-lg font-bold rounded-xl hover:bg-[var(--primary-color)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 shadow-lg"
               >
                 <FaShoppingCart size={20} />
-                Commander maintenant
+                {t("product_detail.order_now")}
               </button>
             </div>
           </div>

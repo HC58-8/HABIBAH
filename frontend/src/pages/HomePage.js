@@ -17,8 +17,9 @@ import ProductCard   from "../components/ProductCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Navbar        from "../components/Navbar";
 import Footer        from "../components/Footer";
+import { API } from "../config/api";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/products";
+const API_URL = API.PRODUCTS;
 
 // ── Animation helpers ─────────────────────────────────────────
 const fadeUp   = { hidden: { opacity: 0, y: 48 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } } };

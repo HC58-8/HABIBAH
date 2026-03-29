@@ -14,6 +14,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { API } from "../config/api";
 
 import Notification   from "../components/Notification";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -22,7 +23,7 @@ import Pagination     from "../components/Pagination";
 import ProductCard    from "../components/ProductCard";
 import Navbar         from "../components/Navbar";
 
-const API_URL      = process.env.REACT_APP_API_URL || "http://localhost:5000/api/products";
+const API_URL      = API.PRODUCTS;
 const ADMIN_EMAIL  = "zrirhabibah@gmail.com";
 const allowedSizes = ["250g", "500g", "1kg"];
 
