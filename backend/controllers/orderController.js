@@ -93,7 +93,7 @@ const createOrder = async (req, res) => {
     console.log("✅ [CONTROLLER] userId associé à la commande:", userId);
 
     // ✅ Envoi des emails de notification (admin + client si email fourni)
-    console.log("📧 [CONTROLLER] Tentative d'envoi des emails de commande...");
+    console.log("📧 [CONTROLLER] Démarrage de l'envoi des emails...");
     try {
       await sendOrderEmails({
         id: order.id,
@@ -101,10 +101,9 @@ const createOrder = async (req, res) => {
         total,
         note
       }, customer);
-      console.log("✅ [CONTROLLER] Emails de commande envoyés avec succès.");
+      console.log("📧 [CONTROLLER] Fin de l'envoi des emails avec succès");
     } catch (err) {
-      console.error("❌ [CONTROLLER] Erreur lors de l'envoi des emails de commande:", err.message);
-      // On ne bloque pas la réponse client même si l'email échoue, mais on log l'erreur.
+      console.error("❌ [CONTROLLER] Erreur lors de l'envoi des e-mails:", err.message);
     }
 
     console.log("🔍 [CONTROLLER] ===== FIN CRÉATION COMMANDE =====\n");

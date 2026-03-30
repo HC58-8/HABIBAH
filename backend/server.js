@@ -75,24 +75,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
-// ✅ Route de diagnostic pour tester l'email en production (Placée avant /api/:id)
-app.get("/api/test-production-email", async (req, res) => {
-  try {
-    const { sendOrderEmails } = require("./services/emailService");
-    const testOrder = { id: 999, total: 10, items: [], note: "Test de production" };
-    const testCustomer = { name: "Haroun (Test)", email: "harounchedli72@gmail.com", phone: "00000000", address: "Test Admin" };
-    
-    await sendOrderEmails(testOrder, testCustomer);
-    res.json({ success: true, message: "Email de test envoyé avec succès !" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
 app.post("/api/google-login", userController.googleLogin);
 app.post("/api/login", userController.login);
-app.get("/api", productController.getProducts); 
-app.get("/api/:id", productController.getProductById); 
+app.get("/api", productController.getProducts); // Alias pour les vieux déploiements Netlify qui font GET /api au lieu de GET /api/products
+app.get("/api/:id", productController.getProductById); // Alias pour les vieux déploiements Netlify qui font GET /api/14 au lieu de GET /api/products/14
 
 // Aliases for admin actions from broken Netlify frontend
 const orderController = require("./controllers/orderController");
@@ -107,6 +93,28 @@ app.get("/", (req, res) => {
   res.json({ message: "API en ligne ✅" });
 });
 
+// ✅ Route de Diagnostic pour les Emails
+const { sendOrderEmails } = require("./services/emailService");
+app.get("/api/test-email", async (req, res) => {
+  try {
+    console.log("🔍 [TEST] Tentative d'envoi d'email de diagnostic...");
+    await sendOrderEmails({
+      id: "999-TEST",
+      items: [{ name: "Produit de Test", quantity: 1, price: 0 }],
+      total: 0,
+      note: "Ceci est un test de diagnostic."
+    }, {
+      name: "Admin Test",
+      email: process.env.EMAIL_USER,
+      phone: "00000000",
+      address: "Test Address"
+    });
+    res.json({ message: "✅ Email de test envoyé ! Vérifiez votre boîte de réception." });
+  } catch (error) {
+    console.error("❌ [TEST] Erreur email diagnostic:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // ==================== GESTION ERREURS ====================
 app.use((err, req, res, next) => {
