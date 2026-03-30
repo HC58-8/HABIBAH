@@ -93,6 +93,20 @@ app.get("/", (req, res) => {
   res.json({ message: "API en ligne ✅" });
 });
 
+// ✅ Route de diagnostic pour tester l'email en production
+app.get("/api/test-production-email", async (req, res) => {
+  try {
+    const { sendOrderEmails } = require("./services/emailService");
+    const testOrder = { id: 999, total: 10, items: [], note: "Test de production" };
+    const testCustomer = { name: "Haroun (Test)", email: "harounchedli72@gmail.com", phone: "00000000", address: "Test Admin" };
+    
+    await sendOrderEmails(testOrder, testCustomer);
+    res.json({ success: true, message: "Email de test envoyé avec succès !" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ==================== GESTION ERREURS ====================
 app.use((err, req, res, next) => {
   console.error(err.stack);

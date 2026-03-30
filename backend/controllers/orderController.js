@@ -93,13 +93,19 @@ const createOrder = async (req, res) => {
     console.log("✅ [CONTROLLER] userId associé à la commande:", userId);
 
     // ✅ Envoi des emails de notification (admin + client si email fourni)
-    // On n'attend pas la fin de l'envoi pour répondre au front (pas de await) pour ne pas ralentir l'UX
-    sendOrderEmails({
-      id: order.id,
-      items,
-      total,
-      note
-    }, customer).catch(err => console.error("Erreur asynchrone e-mail:", err));
+    console.log("📧 [CONTROLLER] Tentative d'envoi des emails de commande...");
+    try {
+      await sendOrderEmails({
+        id: order.id,
+        items,
+        total,
+        note
+      }, customer);
+      console.log("✅ [CONTROLLER] Emails de commande envoyés avec succès.");
+    } catch (err) {
+      console.error("❌ [CONTROLLER] Erreur lors de l'envoi des emails de commande:", err.message);
+      // On ne bloque pas la réponse client même si l'email échoue, mais on log l'erreur.
+    }
 
     console.log("🔍 [CONTROLLER] ===== FIN CRÉATION COMMANDE =====\n");
 
