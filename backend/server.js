@@ -47,7 +47,10 @@ app.use(
 app.use(express.json());
 
 // ==================== STATIC FILES ====================
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", (req, res, next) => {
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  next();
+}, express.static(path.join(__dirname, "uploads")));
 
 // ==================== ROUTES ====================
 app.use("/api/products", productRoutes);
