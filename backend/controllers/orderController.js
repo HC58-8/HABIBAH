@@ -95,15 +95,19 @@ const createOrder = async (req, res) => {
     // ✅ Envoi des emails de notification (admin + client si email fourni)
     console.log("📧 [CONTROLLER] Démarrage de l'envoi des emails...");
     try {
-      await sendOrderEmails({
-        id: order.id,
-        items,
-        total,
-        note
-      }, customer);
-      console.log("📧 [CONTROLLER] Fin de l'envoi des emails avec succès");
+      // ✅ Timeout de 5 secondes pour éviter de bloquer la réponse (évite le 502 sur Render)
+      const emailTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Timeout SMTP (5s)")), 5000)
+      );
+      
+      await Promise.race([
+        sendOrderEmails({ id: order.id, items, total, note }, customer),
+        emailTimeout
+      ]);
+      console.log("📧 [CONTROLLER] Fin de l'envoi des emails");
     } catch (err) {
-      console.error("❌ [CONTROLLER] Erreur lors de l'envoi des e-mails:", err.message);
+      console.warn("⚠️ [CONTROLLER] Notification email reportée ou échouée:", err.message);
+      // L'ordre est déjà créé, on ne bloque pas le client
     }
 
     console.log("🔍 [CONTROLLER] ===== FIN CRÉATION COMMANDE =====\n");

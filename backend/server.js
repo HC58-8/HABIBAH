@@ -79,6 +79,11 @@ app.post("/api/google-login", userController.googleLogin);
 app.post("/api/login", userController.login);
 app.get("/api", productController.getProducts);
 
+// ==================== ROUTE TEST ====================
+app.get("/", (req, res) => {
+  res.json({ message: "API en ligne ✅" });
+});
+
 // ✅ Route de Diagnostic pour les Emails (Placée avant les routes dynamiques)
 const { sendOrderEmails } = require("./services/emailService");
 app.get("/api/test-email", async (req, res) => {
