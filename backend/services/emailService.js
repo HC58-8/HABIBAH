@@ -139,7 +139,7 @@ const buildOrderEmailHTML = (orderData, isAdmin, customer) => {
   let itemsHtml = orderData.items.map(item => `
     <tr>
       <td style="padding:12px;border-bottom:1px solid #eee;">
-        <strong>${item.productName || item.productname || 'Produit'}</strong> ${item.size ? `(${item.size})` : ''}
+        <strong>${item.name || item.productName || item.productname || 'Produit'}</strong> ${item.size ? `(${item.size})` : ''}
       </td>
       <td style="padding:12px;border-bottom:1px solid #eee;text-align:center;">${item.quantity}</td>
       <td style="padding:12px;border-bottom:1px solid #eee;text-align:right;">${item.price || item.unit_price} DT</td>
