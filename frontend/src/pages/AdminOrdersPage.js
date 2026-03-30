@@ -861,7 +861,7 @@ function AdminOrdersPage() {
                         {selectedProduct.images.map((img, idx) => (
                           <div key={idx} className="relative">
                             <img
-                              src={`http://localhost:5000${img}`}
+                              src={getImageUrl(img)}
                               alt={`${selectedProduct.name} - ${idx + 1}`}
                               className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
                               onError={(e) => { e.target.style.display = 'none'; }}

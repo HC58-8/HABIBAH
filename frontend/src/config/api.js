@@ -4,9 +4,9 @@
 // URL de base de l'API (ex: https://habibah-api.onrender.com/api)
 const BASE_URL = process.env.REACT_APP_API_URL 
   ? process.env.REACT_APP_API_URL.replace(/\/$/, "")
-  : (window.location.hostname.includes("netlify.app") 
-      ? "https://habibah-api.onrender.com/api" 
-      : "http://localhost:5000/api");
+  : (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "http://localhost:5000/api"
+      : "https://habibah-api.onrender.com/api");
 
 // URL du serveur pour les images uploadées (ex: https://habibah-api.onrender.com)
 export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL 

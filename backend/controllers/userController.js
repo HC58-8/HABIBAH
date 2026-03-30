@@ -282,8 +282,16 @@ const getProfile = async (req, res) => {
       created_at: user.created_at,
     });
   } catch (error) {
-    console.error("Get profile error:", error);
-    res.status(500).json({ message: "Erreur lors de la récupération du profil", error: error.message });
+    console.error("❌ [BACKEND] Get profile error details:", {
+      message: error.message,
+      stack: error.stack,
+      userId: req.user?.id
+    });
+    res.status(500).json({ 
+      message: "Erreur lors de la récupération du profil", 
+      error: error.message,
+      details: process.env.NODE_ENV !== "production" ? error.stack : undefined
+    });
   }
 };
 
