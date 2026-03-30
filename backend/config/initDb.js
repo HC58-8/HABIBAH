@@ -16,7 +16,8 @@ const initDb = async () => {
         provider VARCHAR(20) DEFAULT 'local',
         phone VARCHAR(20),
         address TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS products (
@@ -34,12 +35,26 @@ const initDb = async () => {
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-        customer JSONB NOT NULL,
-        items JSONB NOT NULL,
-        total NUMERIC(10, 3),
+        customer_name VARCHAR(255),
+        customer_phone VARCHAR(50),
+        customer_address TEXT,
+        customer_email VARCHAR(255),
         note TEXT,
+        total_amount NUMERIC(10, 2),
         status VARCHAR(50) DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+        product_id INTEGER,
+        product_name VARCHAR(255),
+        product_size VARCHAR(50),
+        unit_price NUMERIC(10, 2),
+        quantity INTEGER,
+        subtotal NUMERIC(10, 2)
       );
     `);
 
