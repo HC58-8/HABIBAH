@@ -75,6 +75,7 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 app.post("/api/google-login", userController.googleLogin);
 app.post("/api/login", userController.login);
 app.get("/api", productController.getProducts); // Alias pour les vieux déploiements Netlify qui font GET /api au lieu de GET /api/products
+app.get("/api/:id", productController.getProductById); // Alias pour les vieux déploiements Netlify qui font GET /api/14 au lieu de GET /api/products/14
 
 // Aliases for admin actions from broken Netlify frontend
 app.post("/api/add", authMiddleware, adminMiddleware, upload.array("images", 4), productController.addProduct);
