@@ -88,13 +88,22 @@ function AdminOrdersPage() {
 
     setLoadingProductDetails(true);
     try {
-      const res = await axios.get(`${PRODUCT_API}/${productId}`);
-      setProductDetails(prev => ({ ...prev, [productId]: res.data }));
-      setSelectedProduct(res.data);
+      const res = await axios.get(`${PRODUCT_API}/${productId}`, {
+        validateStatus: (status) => (status >= 200 && status < 300) || status === 404
+      });
+
+      if (res.status === 404) {
+        const deletedProduct = { name: "Produit supprimé", deleted: true, id: productId };
+        setProductDetails(prev => ({ ...prev, [productId]: deletedProduct }));
+        setSelectedProduct(deletedProduct);
+      } else {
+        setProductDetails(prev => ({ ...prev, [productId]: res.data }));
+        setSelectedProduct(res.data);
+      }
       setShowProductDetails(true);
     } catch (error) {
       console.error("❌ Erreur chargement détails produit:", error);
-      alert("Erreur lors du chargement des détails du produit");
+      alert("Ce produit semble avoir été supprimé de la base de données.");
     } finally {
       setLoadingProductDetails(false);
     }
