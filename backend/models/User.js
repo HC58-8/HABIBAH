@@ -52,7 +52,7 @@ const findUserById = async (id) => {
   try {
     const result = await pool.query(
       "SELECT id, firstname, lastname, email, role, provider, created_at FROM users WHERE id = $1",
-      [id]
+      [parseInt(id)]
     );
     return result.rows[0];
   } catch (error) {
