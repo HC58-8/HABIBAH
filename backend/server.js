@@ -75,10 +75,24 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
+// ✅ Route de diagnostic pour tester l'email en production (Placée avant /api/:id)
+app.get("/api/test-production-email", async (req, res) => {
+  try {
+    const { sendOrderEmails } = require("./services/emailService");
+    const testOrder = { id: 999, total: 10, items: [], note: "Test de production" };
+    const testCustomer = { name: "Haroun (Test)", email: "harounchedli72@gmail.com", phone: "00000000", address: "Test Admin" };
+    
+    await sendOrderEmails(testOrder, testCustomer);
+    res.json({ success: true, message: "Email de test envoyé avec succès !" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.post("/api/google-login", userController.googleLogin);
 app.post("/api/login", userController.login);
-app.get("/api", productController.getProducts); // Alias pour les vieux déploiements Netlify qui font GET /api au lieu de GET /api/products
-app.get("/api/:id", productController.getProductById); // Alias pour les vieux déploiements Netlify qui font GET /api/14 au lieu de GET /api/products/14
+app.get("/api", productController.getProducts); 
+app.get("/api/:id", productController.getProductById); 
 
 // Aliases for admin actions from broken Netlify frontend
 const orderController = require("./controllers/orderController");
@@ -93,19 +107,6 @@ app.get("/", (req, res) => {
   res.json({ message: "API en ligne ✅" });
 });
 
-// ✅ Route de diagnostic pour tester l'email en production
-app.get("/api/test-production-email", async (req, res) => {
-  try {
-    const { sendOrderEmails } = require("./services/emailService");
-    const testOrder = { id: 999, total: 10, items: [], note: "Test de production" };
-    const testCustomer = { name: "Haroun (Test)", email: "harounchedli72@gmail.com", phone: "00000000", address: "Test Admin" };
-    
-    await sendOrderEmails(testOrder, testCustomer);
-    res.json({ success: true, message: "Email de test envoyé avec succès !" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
 
 // ==================== GESTION ERREURS ====================
 app.use((err, req, res, next) => {
