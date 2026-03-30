@@ -57,9 +57,29 @@ app.use("/api/orders", orderRoutes); // <-- Routes commandes
 // Add explicit alias for google-login and login to fix deployed frontend URLs
 const userController = require("./controllers/userController");
 const productController = require("./controllers/productController");
+const { authMiddleware, adminMiddleware } = require("./middleware/authMiddleware");
+const multer = require("multer");
+const path = require("path");
+const { v4: uuidv4 } = require("uuid");
+
+// Duplicate multer config just for aliases (or we can just skip it if we don't want to duplicate, but better to duplicate for certainty)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${uuidv4()}${ext}`);
+  },
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+
 app.post("/api/google-login", userController.googleLogin);
 app.post("/api/login", userController.login);
 app.get("/api", productController.getProducts); // Alias pour les vieux déploiements Netlify qui font GET /api au lieu de GET /api/products
+
+// Aliases for admin actions from broken Netlify frontend
+app.post("/api/add", authMiddleware, adminMiddleware, upload.array("images", 4), productController.addProduct);
+app.put("/api/:id", authMiddleware, adminMiddleware, upload.array("images", 4), productController.updateProduct);
+app.delete("/api/:id", authMiddleware, adminMiddleware, productController.deleteProduct);
 
 // ==================== ROUTE TEST ====================
 app.get("/", (req, res) => {
