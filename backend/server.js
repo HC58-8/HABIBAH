@@ -77,23 +77,9 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 app.post("/api/google-login", userController.googleLogin);
 app.post("/api/login", userController.login);
-app.get("/api", productController.getProducts); // Alias pour les vieux déploiements Netlify qui font GET /api au lieu de GET /api/products
-app.get("/api/:id", productController.getProductById); // Alias pour les vieux déploiements Netlify qui font GET /api/14 au lieu de GET /api/products/14
+app.get("/api", productController.getProducts);
 
-// Aliases for admin actions from broken Netlify frontend
-const orderController = require("./controllers/orderController");
-app.get("/api/admin/all", authMiddleware, adminMiddleware, userController.getAllUsers);
-app.get("/api/orders", authMiddleware, adminMiddleware, orderController.getAllOrders);
-app.post("/api/add", authMiddleware, adminMiddleware, upload.array("images", 4), productController.addProduct);
-app.put("/api/:id", authMiddleware, adminMiddleware, upload.array("images", 4), productController.updateProduct);
-app.delete("/api/:id", authMiddleware, adminMiddleware, productController.deleteProduct);
-
-// ==================== ROUTE TEST ====================
-app.get("/", (req, res) => {
-  res.json({ message: "API en ligne ✅" });
-});
-
-// ✅ Route de Diagnostic pour les Emails
+// ✅ Route de Diagnostic pour les Emails (Placée avant les routes dynamiques)
 const { sendOrderEmails } = require("./services/emailService");
 app.get("/api/test-email", async (req, res) => {
   try {
@@ -115,6 +101,17 @@ app.get("/api/test-email", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Aliases for admin actions from broken Netlify frontend
+const orderController = require("./controllers/orderController");
+app.get("/api/admin/all", authMiddleware, adminMiddleware, userController.getAllUsers);
+app.get("/api/orders", authMiddleware, adminMiddleware, orderController.getAllOrders);
+app.post("/api/add", authMiddleware, adminMiddleware, upload.array("images", 4), productController.addProduct);
+
+// ROUTES DYNAMIQUES (Toujours à la fin pour éviter les conflits)
+app.get("/api/:id", productController.getProductById); 
+app.put("/api/:id", authMiddleware, adminMiddleware, upload.array("images", 4), productController.updateProduct);
+app.delete("/api/:id", authMiddleware, adminMiddleware, productController.deleteProduct);
 
 // ==================== GESTION ERREURS ====================
 app.use((err, req, res, next) => {
