@@ -129,14 +129,22 @@ function AdminOrdersPage() {
     try {
       await Promise.all([...productIds].map(async (productId) => {
         try {
-          const res = await axios.get(`${PRODUCT_API}/${productId}`);
+          const res = await axios.get(`${PRODUCT_API}/${productId}`, {
+            validateStatus: (status) => (status >= 200 && status < 300) || status === 404
+          });
+          
+          if (res.status === 404) {
+             setProductDetails(prev => ({ ...prev, [productId]: { name: "Produit supprimé", deleted: true } }));
+             return;
+          }
+
           if (res.data?.images?.length > 0) {
             const mainImageIndex = res.data.main_image_index || 0;
             images[productId] = res.data.images[mainImageIndex] || res.data.images[0];
           }
           setProductDetails(prev => ({ ...prev, [productId]: res.data }));
         } catch (err) {
-          console.log(`Image non trouvée pour produit ${productId}`);
+          console.warn(`⚠️ Produit #${productId} non accessible:`, err.message);
         }
       }));
       setProductImages(prev => ({ ...prev, ...images }));

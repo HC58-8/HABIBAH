@@ -3,19 +3,29 @@ const nodemailer = require("nodemailer");
 
 // ── Transporter ──────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // true pour le port 465, false pour les autres ports (587)
   auth: {
-    user: process.env.EMAIL_USER, // votre adresse Gmail
-    pass: process.env.EMAIL_PASS, // mot de passe d'application Gmail (pas votre mdp normal)
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false // Aide parfois sur les environnements réseau restreints
+  }
 });
 
 // ── Vérifier la connexion au démarrage ────────────────────────
-transporter.verify((error) => {
+transporter.verify((error, success) => {
   if (error) {
-    console.error("❌ [EMAIL] Erreur de connexion SMTP:", error.message);
+    console.error("❌ [EMAIL] ERREUR SMTP CRITIQUE:", {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      stack: error.stack
+    });
   } else {
-    console.log("✅ [EMAIL] Service email prêt");
+    console.log("✅ [EMAIL] Service SMTP prêt et authentifié");
   }
 });
 
