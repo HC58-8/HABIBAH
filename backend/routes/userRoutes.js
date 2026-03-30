@@ -19,15 +19,7 @@ router.get("/profile",  authMiddleware, userController.getProfile);
 router.put("/profile",  authMiddleware, userController.updateProfile);
 
 // ==================== ROUTES ADMIN ====================
-router.get("/admin/all", authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const User  = require("../models/User");
-    const users = await User.getAllUsers();
-    res.json({ users });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+router.get("/admin/all", authMiddleware, adminMiddleware, userController.getAllUsers);
 
 router.delete("/admin/:id", authMiddleware, adminMiddleware, userController.deleteUser);
 

@@ -12,8 +12,10 @@ import { MdPending } from "react-icons/md";
 import { GiConfirmed } from "react-icons/gi";
 import PageHeader from "../components/PageHeader";
 
-const ORDER_API = process.env.REACT_APP_ORDER_API || "http://localhost:5000/api/orders";
-const PRODUCT_API = "http://localhost:5000/api/products";
+import { API, BACKEND_URL } from "../config/api";
+
+const ORDER_API = API.ORDERS;
+const PRODUCT_API = API.PRODUCTS;
 
 // ✅ FIX: statusConfig déplacé HORS du composant → plus de dépendance manquante dans useCallback
 const statusConfig = {
@@ -288,7 +290,7 @@ function AdminOrdersPage() {
   const getImageUrl = (productId, imagePath) => {
     if (!imagePath) return null;
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5000${imagePath}`;
+    return `${BACKEND_URL}${imagePath}`;
   };
 
   // ================= FORMATER INGRÉDIENTS =================

@@ -78,6 +78,9 @@ app.get("/api", productController.getProducts); // Alias pour les vieux déploie
 app.get("/api/:id", productController.getProductById); // Alias pour les vieux déploiements Netlify qui font GET /api/14 au lieu de GET /api/products/14
 
 // Aliases for admin actions from broken Netlify frontend
+const orderController = require("./controllers/orderController");
+app.get("/api/admin/all", authMiddleware, adminMiddleware, userController.getAllUsers);
+app.get("/api/orders", authMiddleware, adminMiddleware, orderController.getAllOrders);
 app.post("/api/add", authMiddleware, adminMiddleware, upload.array("images", 4), productController.addProduct);
 app.put("/api/:id", authMiddleware, adminMiddleware, upload.array("images", 4), productController.updateProduct);
 app.delete("/api/:id", authMiddleware, adminMiddleware, productController.deleteProduct);

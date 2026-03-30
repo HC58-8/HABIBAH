@@ -365,6 +365,16 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.getAllUsers();
+    res.json({ users });
+  } catch (error) {
+    console.error("GetAllUsers error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   sendOtp,
   verifyOtp,
@@ -374,4 +384,5 @@ module.exports = {
   getProfile,
   updateProfile,
   deleteUser,
+  getAllUsers,
 };
