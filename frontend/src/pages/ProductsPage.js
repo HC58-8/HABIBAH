@@ -14,7 +14,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { API } from "../config/api";
+import { API, getImageUrl } from "../config/api";
 
 import Notification   from "../components/Notification";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -367,7 +367,7 @@ function ProductsPage() {
                       <img
                         src={
                           quickViewProduct.images?.[quickViewProduct.mainImageIndex || 0]
-                            ? `http://localhost:5000${quickViewProduct.images[quickViewProduct.mainImageIndex || 0]}`
+                            ? getImageUrl(quickViewProduct.images[quickViewProduct.mainImageIndex || 0])
                             : "/placeholder.jpg"
                         }
                         alt={quickViewProduct.name}
@@ -388,7 +388,7 @@ function ProductsPage() {
                           img ? (
                             <img
                               key={idx}
-                              src={`http://localhost:5000${img}`}
+                              src={getImageUrl(img)}
                               alt=""
                               className={`w-full h-16 object-cover rounded-lg cursor-pointer transition-all ${
                                 idx === (quickViewProduct.mainImageIndex || 0)
@@ -671,7 +671,7 @@ function ProductsPage() {
                                   <img
                                     src={images[index] instanceof File
                                       ? URL.createObjectURL(images[index])
-                                      : `http://localhost:5000${images[index]}`}
+                                      : getImageUrl(images[index])}
                                     alt=""
                                     className="w-full h-28 object-cover rounded-lg"
                                   />

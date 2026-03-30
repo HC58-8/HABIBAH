@@ -144,7 +144,7 @@ function AccountPage() {
           setErrorMessage(`Erreur ${err.response.status}: ${err.response.data?.message || "Erreur inconnue"}`);
         }
       } else if (err.request) {
-        setErrorMessage("Le serveur ne répond pas. Vérifiez que le backend est lancé sur http://localhost:5000");
+        setErrorMessage("Le serveur ne répond pas. Vérifiez que l'API est accessible.");
       } else {
         setErrorMessage("Erreur: " + err.message);
       }

@@ -3,6 +3,7 @@ import {
   FaTimes, FaImage, FaStar, FaLeaf, 
   FaPlusCircle, FaInfoCircle 
 } from "react-icons/fa";
+import { getImageUrl } from "../config/api";
 
 const ProductForm = ({
   initialData = null,
@@ -221,7 +222,7 @@ const ProductForm = ({
                             src={
                               images[index] instanceof File
                                 ? URL.createObjectURL(images[index])
-                                : `http://localhost:5000${images[index]}`
+                                : getImageUrl(images[index])
                             }
                             alt=""
                             className="w-full h-32 object-cover rounded-lg"

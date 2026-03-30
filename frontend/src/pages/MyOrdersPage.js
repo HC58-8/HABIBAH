@@ -12,8 +12,10 @@ import { MdPending } from "react-icons/md";
 import { GiConfirmed } from "react-icons/gi";
 import PageHeader from "../components/PageHeader";
 
-const ORDER_API = process.env.REACT_APP_ORDER_API || "http://localhost:5000/api/orders";
-const PRODUCT_API = "http://localhost:5000/api/products";
+import { API, getImageUrl } from "../config/api";
+
+const ORDER_API = API.ORDERS;
+const PRODUCT_API = API.PRODUCTS;
 
 function MyOrdersPage() {
   const navigate = useNavigate();
@@ -248,7 +250,9 @@ function MyOrdersPage() {
     const imagePath = productImages[productId];
     if (!imagePath) return null;
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5000${imagePath}`;
+  const getLocalImageUrl = (productId, imagePath) => {
+    return getImageUrl(imagePath);
+  };
   };
 
   // ================= FORMATER INGRÉDIENTS =================
@@ -667,7 +671,7 @@ function MyOrdersPage() {
                         {selectedProduct.images.map((img, idx) => (
                           <div key={idx} className="relative group">
                             <img
-                              src={`http://localhost:5000${img}`}
+                              src={getImageUrl(img)}
                               alt={`${selectedProduct.name} - ${idx + 1}`}
                               className="w-full h-32 object-cover rounded-lg border-2 border-gray-200 group-hover:border-[var(--secondary-color)] transition"
                               onError={(e) => {

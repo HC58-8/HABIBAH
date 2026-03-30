@@ -7,6 +7,7 @@ import {
 } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { useCart } from "../context/CartContext";
+import { API, getImageUrl } from "../config/api";
 import PageHeader from "../components/PageHeader";
 
 function CartPage() {
@@ -185,7 +186,7 @@ function CartPage() {
                 <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
                   {item.image ? (
                     <img
-                      src={`http://localhost:5000${item.image}`}
+                      src={getImageUrl(item.image)}
                       alt={item.name}
                       className="w-full h-full object-cover"
                     />

@@ -4,6 +4,7 @@ import {
   FaChevronLeft, FaChevronRight, FaStar 
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { getImageUrl } from "../config/api";
 
 const ProductCard = ({ product, isAdmin = false, onEdit, onDelete }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -36,13 +37,6 @@ const ProductCard = ({ product, isAdmin = false, onEdit, onDelete }) => {
     }
   };
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    // Si c'est déjà une URL complète
-    if (imagePath.startsWith('http')) return imagePath;
-    // Sinon, ajouter le base URL
-    return `http://localhost:5000${imagePath}`;
-  };
 
   // Filtrer les images null/undefined
   const validImages = product.images?.filter(img => img != null) || [];

@@ -9,7 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useCart } from "../context/CartContext";
 import PageHeader from "../components/PageHeader";
-import { API } from "../config/api";
+import { API, getImageUrl } from "../config/api";
 
 const ORDER_API = API.ORDERS;
 const USER_API  = API.USERS;
@@ -473,7 +473,7 @@ function OrderPage() {
                   <div key={item.itemId} className="flex gap-3 items-center">
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                       {item.image ? (
-                        <img src={`http://localhost:5000${item.image}`} alt={item.name} className="w-full h-full object-cover" />
+                        <img src={getImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-gray-200" />
                       )}
