@@ -59,7 +59,7 @@ const userController = require("./controllers/userController");
 const productController = require("./controllers/productController");
 const { authMiddleware, adminMiddleware } = require("./middleware/authMiddleware");
 const multer = require("multer");
-const path = require("path");
+// const path = require("path"); // Already defined at the top
 const { v4: uuidv4 } = require("uuid");
 
 // Duplicate multer config just for aliases (or we can just skip it if we don't want to duplicate, but better to duplicate for certainty)
