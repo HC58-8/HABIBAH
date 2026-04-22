@@ -1,0 +1,35 @@
+[
+  {
+    "column_name": "id"
+  },
+  {
+    "column_name": "customer_name"
+  },
+  {
+    "column_name": "customer_phone"
+  },
+  {
+    "column_name": "customer_address"
+  },
+  {
+    "column_name": "customer_email"
+  },
+  {
+    "column_name": "note"
+  },
+  {
+    "column_name": "user_id"
+  },
+  {
+    "column_name": "total_amount"
+  },
+  {
+    "column_name": "status"
+  },
+  {
+    "column_name": "created_at"
+  },
+  {
+    "column_name": "updated_at"
+  }
+]

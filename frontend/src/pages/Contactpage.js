@@ -67,9 +67,9 @@ function ContactPage() {
   const [sending, setSending]     = useState(false);
 
   const infos = [
-    { icon: <FaPhone size={20} />,        label: t('contact.info_l1'),  value: "+216 XX XXX XXX",       href: "tel:+21600000000",           desc: t('contact.info_d1') },
+    { icon: <FaPhone size={20} />,        label: t('contact.info_l1'),  value: "+216 25 257 099",       href: "tel:+21625257099",           desc: t('contact.info_d1') },
     { icon: <FaEnvelope size={20} />,     label: t('contact.info_l2'),      value: "zrirhabibah@gmail.com", href: "mailto:zrirhabibah@gmail.com", desc: t('contact.info_d2') },
-    { icon: <FaWhatsapp size={20} />,     label: t('contact.info_l3'),   value: "+216 XX XXX XXX",       href: "https://wa.me/21600000000",   desc: t('contact.info_d3') },
+    { icon: <FaWhatsapp size={20} />,     label: t('contact.info_l3'),   value: "+216 25 257 099",       href: "https://wa.me/21625257099",   desc: t('contact.info_d3') },
     { icon: <FaMapMarkerAlt size={20} />, label: t('contact.info_l4'),    value: t('contact.info_v4'),        href: "#",                           desc: t('contact.info_d4') },
   ];
 
@@ -100,9 +100,18 @@ function ContactPage() {
     e.preventDefault();
     if (!validate()) return;
     setSending(true);
-    await new Promise(r => setTimeout(r, 1500)); // simulation envoi
+    
+    // Format the message for WhatsApp
+    const whatsappText = `*Nouveau message depuis le site web*\n\n*Nom:* ${form.nom}\n*Email:* ${form.email}\n*Téléphone:* ${form.telephone || 'Non renseigné'}\n*Sujet:* ${form.sujet || 'Non renseigné'}\n\n*Message:*\n${form.message}`;
+    const whatsappUrl = `https://wa.me/21625257099?text=${encodeURIComponent(whatsappText)}`;
+    
+    // Simulate slight delay for UX
+    await new Promise(r => setTimeout(r, 500)); 
     setSending(false);
     setSubmitted(true);
+    
+    // Open WhatsApp in a new tab
+    window.open(whatsappUrl, "_blank");
   };
 
   const inputClass = (field) =>
@@ -169,9 +178,9 @@ function ContactPage() {
             className="flex justify-center gap-4"
           >
             {[
-              { icon: <FaWhatsapp size={22} />,  href: "https://wa.me/21600000000", label: "WhatsApp",  bg: "bg-green-500" },
-              { icon: <FaInstagram size={22} />, href: "#",                         label: "Instagram", bg: "bg-gradient-to-br from-pink-500 to-orange-400" },
-              { icon: <FaFacebook size={22} />,  href: "#",                         label: "Facebook",  bg: "bg-blue-600" },
+              { icon: <FaWhatsapp size={22} />,  href: "https://wa.me/21625257099", label: "WhatsApp",  bg: "bg-green-500" },
+              { icon: <FaInstagram size={22} />, href: "https://www.instagram.com/zrirhabibah?igsh=MWt3cXFlaHRydXA0aA==",                         label: "Instagram", bg: "bg-gradient-to-br from-pink-500 to-orange-400" },
+              { icon: <FaFacebook size={22} />,  href: "https://www.facebook.com/profile.php?id=61560995361604&rdid=qpOXST60gWhj3W16&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F17PaWRqFTn%2F#",                         label: "Facebook",  bg: "bg-blue-600" },
             ].map(({ icon, href, label, bg }) => (
               <motion.a
                 key={label}
@@ -244,16 +253,10 @@ function ContactPage() {
                   <span className="font-bold text-gray-800 text-sm">{t('contact.hours_title')}</span>
                 </div>
                 <div className="space-y-1.5 text-sm">
-                  {[
-                    { j: t('contact.h_d1'),  h: t('contact.h_v1') },
-                    { j: t('contact.h_d2'),            h: t('contact.h_v2') },
-                    { j: t('contact.h_d3'),          h: t('contact.h_v3') },
-                  ].map(({ j, h }) => (
-                    <div key={j} className="flex justify-between text-gray-600">
-                      <span>{j}</span>
-                      <span className="font-medium text-gray-800">{h}</span>
-                    </div>
-                  ))}
+                  <div className="flex justify-between text-gray-600">
+                    <span>Lundi — Dimanche</span>
+                    <span className="font-medium text-gray-800">24/24 7/7</span>
+                  </div>
                 </div>
               </motion.div>
             </AnimSection>
@@ -343,7 +346,7 @@ function ContactPage() {
                             name="telephone"
                             value={form.telephone}
                             onChange={handleChange}
-                            placeholder="+216 XX XXX XXX"
+                            placeholder="+216 25 257 099"
                             className={inputClass("telephone")}
                           />
                         </div>
@@ -408,7 +411,7 @@ function ContactPage() {
 
                       <p className="text-center text-xs text-gray-400">
                         {t('contact.wa_alt_text')}
-                        <a href="https://wa.me/21600000000" target="_blank" rel="noopener noreferrer"
+                        <a href="https://wa.me/21625257099" target="_blank" rel="noopener noreferrer"
                           className="font-semibold text-green-600 hover:underline">{t('contact.wa_link')}</a>
                       </p>
                     </form>

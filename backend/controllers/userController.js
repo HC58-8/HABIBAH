@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt    = require("jsonwebtoken");
 const User   = require("../models/User");
 const { OAuth2Client } = require("google-auth-library");
-const { generateOTP, sendOTPEmail } = require("../services/emailService");
+const { generateOTP, sendOTPEmail, sendPasswordResetEmail, sendWelcomeEmail, sendLoginOTPEmail } = require("../services/emailService");
 const { storeOTP, verifyOTP, deleteOTP } = require("../services/otpStore");
 
 const GOOGLE_CLIENT_ID =
@@ -102,6 +102,13 @@ const verifyOtp = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    // Envoyer l'email de bienvenue
+    try {
+      await sendWelcomeEmail(user.email, user.firstname);
+    } catch (emailErr) {
+      console.warn("⚠️ [CONTROLLER] Email de bienvenue reporté ou échoué:", emailErr.message);
+    }
+
     res.status(201).json({
       message: "Compte créé avec succès ! Bienvenue sur Habibah 🎉",
       user: {
@@ -184,11 +191,59 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Email ou mot de passe incorrect" });
     }
 
+    // Generate OTP for login
+    const code = generateOTP();
+    storeOTP(email.trim().toLowerCase(), code, { intent: "login" });
+
+    // Send the email
+    await sendLoginOTPEmail(email.trim(), code, user.firstname);
+
+    console.log(`🔐 Login OTP envoyé à ${email}`);
+
+    res.status(200).json({
+      message: "Code de vérification envoyé à votre adresse email",
+      requiresOtp: true,
+      email: email.trim()
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Erreur lors de la connexion", error: error.message });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// VÉRIFICATION OTP DE CONNEXION
+// POST /api/users/verify-login-otp
+// ═══════════════════════════════════════════════════════════════
+const verifyLoginOtp = async (req, res) => {
+  try {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+      return res.status(400).json({ message: "Email et code sont requis" });
+    }
+
+    const result = verifyOTP(email.trim().toLowerCase(), code);
+    if (!result.valid) {
+      return res.status(400).json({ message: result.reason });
+    }
+
+    if (result.data.intent !== "login") {
+      return res.status(400).json({ message: "Ce code n'est pas valide pour la connexion." });
+    }
+
+    const user = await User.findUserByEmail(email.trim());
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur introuvable" });
+    }
+
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+
+    deleteOTP(email.trim().toLowerCase());
 
     res.json({
       message: "Connexion réussie",
@@ -202,8 +257,87 @@ const login = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Erreur lors de la connexion", error: error.message });
+    console.error("Verify Login OTP error:", error);
+    res.status(500).json({ message: "Erreur lors de la vérification du code", error: error.message });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// MOT DE PASSE OUBLIÉ: DEMANDE OTP
+// POST /api/users/forgot-password
+// ═══════════════════════════════════════════════════════════════
+const sendResetOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "L'email est requis" });
+
+    const user = await User.findUserByEmail(email.trim());
+    if (!user) {
+      // Pour des raisons de sécurité, nous pourrions répondre "succès" même si l'email n'existe pas,
+      // mais ici nous informons l'utilisateur pour une meilleure UX.
+      return res.status(404).json({ message: "Aucun compte trouvé avec cet email" });
+    }
+    
+    if (user.provider === "google") {
+      return res.status(400).json({ message: "Ce compte utilise Google. Veuillez vous connecter avec Google." });
+    }
+
+    const code = generateOTP();
+    storeOTP(email.trim().toLowerCase(), code, { intent: "reset_password" });
+
+    await sendPasswordResetEmail(email.trim(), code, user.firstname);
+
+    console.log(`🔐 Reset OTP envoyé à ${email}`);
+    res.status(200).json({ message: "Code de réinitialisation envoyé à votre adresse email" });
+  } catch (error) {
+    console.error("sendResetOtp error:", error);
+    res.status(500).json({ message: "Erreur lors de l'envoi du code de réinitialisation", error: error.message });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// MOT DE PASSE OUBLIÉ: RÉINITIALISATION
+// POST /api/users/reset-password
+// ═══════════════════════════════════════════════════════════════
+const resetPassword = async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ message: "Email, code et nouveau mot de passe requis" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
+    }
+
+    const result = verifyOTP(email.trim().toLowerCase(), code);
+    if (!result.valid) {
+      return res.status(400).json({ message: result.reason });
+    }
+
+    if (result.data.intent !== "reset_password") {
+       return res.status(400).json({ message: "Ce code n'est pas valide pour la réinitialisation de mot de passe." });
+    }
+
+    const user = await User.findUserByEmail(email.trim());
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur introuvable" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const updated = await User.updatePassword(user.id, hashedPassword);
+    
+    if (!updated) {
+      return res.status(500).json({ message: "Échec de la mise à jour du mot de passe" });
+    }
+
+    deleteOTP(email.trim().toLowerCase());
+
+    res.status(200).json({ message: "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter." });
+  } catch (error) {
+    console.error("resetPassword error:", error);
+    res.status(500).json({ message: "Erreur lors de la réinitialisation", error: error.message });
   }
 };
 
@@ -230,6 +364,12 @@ const googleLogin = async (req, res) => {
 
     if (!user) {
       user = await User.createUser(firstname, lastname, email, null, "google");
+      // Envoyer l'email de bienvenue pour un nouveau compte Google
+      try {
+        await sendWelcomeEmail(user.email, user.firstname);
+      } catch (emailErr) {
+        console.warn("⚠️ [CONTROLLER] Email de bienvenue reporté ou échoué:", emailErr.message);
+      }
     } else if (user.provider === "local") {
       return res.status(400).json({
         message: "Un compte avec cet email existe déjà. Connectez-vous avec votre mot de passe.",
@@ -388,9 +528,12 @@ module.exports = {
   verifyOtp,
   resendOtp,
   login,
+  sendResetOtp,
+  resetPassword,
   googleLogin,
   getProfile,
   updateProfile,
   deleteUser,
   getAllUsers,
+  verifyLoginOtp,
 };

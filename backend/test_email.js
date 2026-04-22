@@ -1,47 +1,40 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config();
+const nodemailer = require("nodemailer");
 
 async function testEmail() {
   console.log("🔍 Testing SMTP Connection...");
-  console.log("📧 User:", process.env.EMAIL_USER);
-  console.log("🔑 Password:", process.env.EMAIL_PASS ? "******** (Hidden)" : "MISSING");
 
   const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, 
+    host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: false, // TLS sur le port 587
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: process.env.SMTP_LOGIN, // login Brevo
+      pass: process.env.EMAIL_PASS, // clé SMTP (mot de passe d’application)
     },
-    tls: {
-      rejectUnauthorized: false
-    }
+    tls: { rejectUnauthorized: false },
   });
 
   try {
-    const success = await transporter.verify();
-    if (success) {
-      console.log("✅ [CONNECTION SUCCESS] SMTP server is reachable and credentials are CORECT.");
-      
-      const info = await transporter.sendMail({
-        from: `"Test Habibah" <${process.env.EMAIL_USER}>`,
-        to: process.env.EMAIL_USER, // Envoyer à soi-même
-        subject: "Test Connexion SMTP - Habibah",
-        text: "Ceci est un test de connexion pour vérifier que votre configuration email fonctionne sur Render.",
-      });
-
-      console.log("📧 [SEND SUCCESS] Test email sent! ID:", info.messageId);
-    }
-  } catch (error) {
+    await transporter.verify();
+    console.log("✅ [CONNECTION SUCCESS] SMTP server is reachable and credentials are correct.");
+    const info = await transporter.sendMail({
+      from: `"Habibah Test" <${process.env.SMTP_LOGIN}>`,
+      to: process.env.SMTP_LOGIN,
+      subject: "Test Connexion SMTP – Habibah",
+      text: "Ce mail confirme que la configuration SMTP Brevo fonctionne.",
+    });
+    console.log("📧 [SEND SUCCESS] Test email sent! ID:", info.messageId);
+  } catch (err) {
     console.error("❌ [ERROR] SMTP Connection failed:");
-    console.error("- Message:", error.message);
-    console.error("- Code:", error.code);
-    console.error("- Command:", error.command);
+    console.error("- Message:", err.message);
+    console.error("- Code:", err.code);
+    console.error("- Command:", err.command);
     console.log("\n💡 TIPS:");
-    if (error.code === 'EAUTH') {
-      console.log("-> Authentification échouée. Vérifiez que vous utilisez bien un 'MOT DE PASSE D'APPLICATION' et non votre mot de passe habituel.");
-    } else if (error.code === 'ESOCKET') {
+    if (err.code === "EAUTH") {
+      console.log("-> Authentification échouée. Vérifiez que la clé SMTP (EMAIL_PASS) correspond bien à votre compte Brevo.");
+    } else if (err.code === 'ESOCKET') {
       console.log("-> Erreur réseau. Vérifiez que le port 587 est ouvert sur votre serveur.");
     }
   }

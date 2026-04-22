@@ -1,6 +1,7 @@
 // src/pages/AdminDashboardPage.js
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaBoxOpen, FaUsers, FaShoppingBag, FaChartLine } from "react-icons/fa";
 import PageHeader from "../components/PageHeader";
 
@@ -8,6 +9,7 @@ const ADMIN_EMAIL = "zrirhabibah@gmail.com";
 
 function AdminDashboardPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Vérifier que l'utilisateur est admin
@@ -26,8 +28,8 @@ function AdminDashboardPage() {
     <div className="min-h-screen bg-[#FCFAED] pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <PageHeader
-          title="Tableau de Bord Administrateur"
-          subtitle="Gérez l'ensemble de votre boutique en un seul endroit"
+          title={t("admin.dashboard_title")}
+          subtitle={t("admin.dashboard_subtitle")}
         />
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -40,10 +42,10 @@ function AdminDashboardPage() {
             <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6 group-hover:bg-green-100 transition-colors">
               <FaBoxOpen className="text-4xl text-green-600" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">Gestion des Produits</h3>
-            <p className="text-gray-500 mb-6">Ajoutez, modifiez ou supprimez vos produits de la boutique.</p>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">{t("admin.manage_products")}</h3>
+            <p className="text-gray-500 mb-6">{t("admin.manage_products_desc")}</p>
             <button className="mt-auto px-6 py-2 bg-green-50 text-green-700 font-semibold rounded-lg group-hover:bg-green-600 group-hover:text-white transition-colors w-full">
-              Gérer les produits
+              {t("admin.manage_products_btn")}
             </button>
           </div>
 
@@ -55,10 +57,10 @@ function AdminDashboardPage() {
             <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-100 transition-colors">
               <FaShoppingBag className="text-4xl text-blue-600" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">Gestion des Commandes</h3>
-            <p className="text-gray-500 mb-6">Suivez, mettez à jour et imprimez les commandes clients.</p>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">{t("admin.manage_orders")}</h3>
+            <p className="text-gray-500 mb-6">{t("admin.manage_orders_desc")}</p>
             <button className="mt-auto px-6 py-2 bg-blue-50 text-blue-700 font-semibold rounded-lg group-hover:bg-[var(--secondary-color)] group-hover:text-white transition-colors w-full">
-              Gérer les commandes
+              {t("admin.manage_orders_btn")}
             </button>
           </div>
 
@@ -70,10 +72,10 @@ function AdminDashboardPage() {
             <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mb-6 group-hover:bg-purple-100 transition-colors">
               <FaUsers className="text-4xl text-purple-600" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">Gestion des Utilisateurs</h3>
-            <p className="text-gray-500 mb-6">Consultez la liste des inscrits et supprimez des comptes si nécessaire.</p>
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">{t("admin.manage_users")}</h3>
+            <p className="text-gray-500 mb-6">{t("admin.manage_users_desc")}</p>
             <button className="mt-auto px-6 py-2 bg-purple-50 text-purple-700 font-semibold rounded-lg group-hover:bg-purple-600 group-hover:text-white transition-colors w-full">
-              Gérer les utilisateurs
+              {t("admin.manage_users_btn")}
             </button>
           </div>
 
@@ -83,9 +85,9 @@ function AdminDashboardPage() {
         <div className="mt-12 bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] rounded-3xl p-8 shadow-lg text-white flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-3">
-              <FaChartLine /> Vue d'ensemble rapide
+              <FaChartLine /> {t("admin.quick_overview")}
             </h2>
-            <p className="opacity-90 mt-2">Accédez aux détails complets dans chaque section respective.</p>
+            <p className="opacity-90 mt-2">{t("admin.quick_overview_desc")}</p>
           </div>
         </div>
 

@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const path = require("path");
 const initDb = require("./config/initDb");
+const pool = require("./config/db");
 
 // ==================== ROUTES ====================
 const productRoutes = require("./routes/productRoutes");
@@ -30,6 +31,7 @@ app.use(
         !origin ||
         origin.includes("localhost") ||
         origin.endsWith(".netlify.app") ||
+        origin.includes("zrirhabibah.com") ||
         origin === process.env.CLIENT_URL
       ) {
         callback(null, true);
@@ -104,6 +106,45 @@ app.get("/api/test-email", async (req, res) => {
   } catch (error) {
     console.error("❌ [TEST] Erreur email diagnostic:", error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== SITEMAP DYNAMIQUE SEO ====================
+app.get("/api/sitemap", async (req, res) => {
+  try {
+    const urls = [
+      { loc: "https://zrirhabibah.com/", changefreq: "daily", priority: 1.0 },
+      { loc: "https://zrirhabibah.com/produits", changefreq: "daily", priority: 0.9 },
+      { loc: "https://zrirhabibah.com/contact", changefreq: "monthly", priority: 0.5 },
+      { loc: "https://zrirhabibah.com/a-propos", changefreq: "monthly", priority: 0.5 },
+    ];
+
+    const result = await pool.query('SELECT id FROM products');
+    
+    result.rows.forEach(product => {
+      urls.push({
+        loc: `https://zrirhabibah.com/produit/${product.id}`,
+        changefreq: "weekly",
+        priority: 0.8
+      });
+    });
+
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+    urls.forEach(u => {
+      xml += '  <url>\n';
+      xml += `    <loc>${u.loc}</loc>\n`;
+      xml += `    <changefreq>${u.changefreq}</changefreq>\n`;
+      xml += `    <priority>${u.priority}</priority>\n`;
+      xml += '  </url>\n';
+    });
+    xml += '</urlset>';
+
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (error) {
+    console.error("Erreur sitemap:", error);
+    res.status(500).send("Erreur lors de la génération du sitemap");
   }
 });
 

@@ -142,9 +142,9 @@ const ProductForm = ({
                 <label className="block text-lg font-medium text-gray-700 mb-2">
                   Ingrédients <span className="text-red-500">*</span>
                 </label>
-                <div className="mb-3 flex flex-wrap gap-2">
+                <div className="mb-3  flex flex-wrap gap-2">
                   {ingredients.map((ing, index) => (
-                    <div key={index} className="bg-[var(--primary-color)] bg-opacity-10 px-3 py-2 rounded-lg flex items-center gap-2 border border-[var(--primary-color)]">
+                    <div key={index} className="bg-[var(--primary-color)] bg-opacity-10 px-3 py-2  rounded-lg flex items-center gap-2 border border-[var(--primary-color)]">
                       <FaLeaf className="text-[var(--primary-color)] text-sm" />
                       <span className="text-gray-700">{ing}</span>
                       <button type="button" onClick={() => handleRemoveIngredient(index)} className="text-red-500 hover:text-red-700 transition">

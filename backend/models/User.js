@@ -95,6 +95,20 @@ const updateUser = async (id, updates) => {
   }
 };
 
+// ==================== METTRE À JOUR LE MOT DE PASSE ====================
+const updatePassword = async (id, hashedPassword) => {
+  try {
+    const result = await pool.query(
+      "UPDATE users SET password = $1 WHERE id = $2 RETURNING id",
+      [hashedPassword, id]
+    );
+    return result.rowCount > 0;
+  } catch (error) {
+    console.error("Erreur mise à jour mot de passe:", error);
+    throw error;
+  }
+};
+
 // ==================== SUPPRIMER UTILISATEUR ====================
 const deleteUser = async (id) => {
   try {
@@ -112,5 +126,6 @@ module.exports = {
   findUserById,
   getAllUsers,
   updateUser,
+  updatePassword,
   deleteUser,
 };

@@ -103,7 +103,7 @@ const ProductCard = ({ product, isAdmin = false, onEdit, onDelete }) => {
             <p className="text-xs text-gray-500 mb-2">Ingrédients :</p>
             <div className="flex flex-wrap gap-1">
               {product.ingredients.slice(0, 3).map((ing, i) => (
-                <span key={i} className="text-xs text-gray-800 bg-[var(--primary-color)] bg-opacity-10 px-2 py-1 rounded-full border border-[var(--primary-color)]">
+                <span key={i} className="text-xs text-white bg-[var(--primary-color)] bg-opacity-10 px-2 py-1 rounded-full border border-[var(--primary-color)]">
                   {ing}
                 </span>
               ))}

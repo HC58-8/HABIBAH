@@ -1,6 +1,6 @@
-// src/pages/AdminUsersPage.js
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import {
   FaUsers, FaSpinner, FaTrash, FaSearch, FaUserShield, FaUser
@@ -13,6 +13,7 @@ const ADMIN_EMAIL = "zrirhabibah@gmail.com";
 
 function AdminUsersPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -30,7 +31,7 @@ function AdminUsersPage() {
       setFilteredUsers(res.data.users || []);
     } catch (error) {
       console.error("❌ Erreur chargement utilisateurs:", error);
-      alert("Erreur lors du chargement des utilisateurs. " + (error.response?.data?.message || ""));
+      alert(t("admin.error_fetch") + ": " + (error.response?.data?.message || ""));
     } finally {
       setLoading(false);
     }
@@ -46,7 +47,7 @@ function AdminUsersPage() {
       try {
         const userData = JSON.parse(userStr);
         if (userData.email !== ADMIN_EMAIL) {
-          alert("Accès réservé à l'administrateur");
+          alert(t("admin.admin_check_error") || "Accès réservé à l'administrateur");
           navigate("/");
           return;
         }
@@ -85,11 +86,11 @@ function AdminUsersPage() {
   // Supprimer un utilisateur
   const handleDeleteUser = async (userId, userEmail) => {
     if (userEmail === ADMIN_EMAIL) {
-      alert("Vous ne pouvez pas supprimer le compte administrateur principal.");
+      alert(t("admin.delete_admin_error") || "Vous ne pouvez pas supprimer le compte administrateur principal.");
       return;
     }
 
-    if (!window.confirm("⚠️ Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action supprime définitivement son compte.")) {
+    if (!window.confirm(t("admin.delete_user_confirm"))) {
       return;
     }
 
@@ -98,11 +99,11 @@ function AdminUsersPage() {
       await axios.delete(`${API_URL}/admin/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert("✅ Utilisateur supprimé avec succès");
+      alert("✅ " + t("admin.delete_success"));
       await fetchUsers(token);
     } catch (error) {
       console.error("❌ Erreur suppression utilisateur:", error);
-      alert(error.response?.data?.message || "Erreur lors de la suppression de l'utilisateur");
+      alert(error.response?.data?.message || t("admin.delete_error"));
     }
   };
 
@@ -119,7 +120,7 @@ function AdminUsersPage() {
       <div className="min-h-screen bg-[#FCFAED] pt-24 flex items-center justify-center">
         <div className="text-center">
           <FaSpinner className="animate-spin text-[var(--secondary-color)] mx-auto mb-4" size={48} />
-          <p className="text-gray-600">Chargement des utilisateurs...</p>
+          <p className="text-gray-600">{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -130,8 +131,8 @@ function AdminUsersPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <PageHeader
-          title="Gestion des utilisateurs"
-          subtitle="Administration - Liste de tous les inscrits"
+          title={t("admin.users_title")}
+          subtitle={t("admin.users_subtitle")}
         />
 
         {/* Statistiques rapides */}
@@ -141,7 +142,7 @@ function AdminUsersPage() {
               <FaUsers size={20} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-500">Total Inscrits</p>
+              <p className="text-sm font-semibold text-gray-500">{t("navbar.admin")}</p>
               <p className="text-2xl font-bold text-gray-800">{users.length}</p>
             </div>
           </div>
@@ -154,7 +155,7 @@ function AdminUsersPage() {
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher par nom, email..."
+                placeholder={t("admin.search_users_placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] transition outline-none"
@@ -166,9 +167,9 @@ function AdminUsersPage() {
                 onChange={(e) => setRoleFilter(e.target.value)}
                 className="w-full md:w-auto px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] transition outline-none bg-white"
               >
-                <option value="all">Tous les rôles</option>
-                <option value="user">Clients (User)</option>
-                <option value="admin">Administrateurs</option>
+                <option value="all">{t("admin.all_statuses")}</option>
+                <option value="user">{t("navbar.profile")}</option>
+                <option value="admin">{t("navbar.admin")}</option>
               </select>
             </div>
           </div>
@@ -178,14 +179,14 @@ function AdminUsersPage() {
         <div className="bg-white rounded-2xl shadow-lg border-2 border-[var(--primary-color)] overflow-hidden">
           <div className="p-6 border-b border-gray-100">
             <h2 className="text-xl font-bold text-[var(--primary-color)] flex items-center gap-2">
-              <FaUsers /> Utilisateurs ({filteredUsers.length})
+              <FaUsers /> {t("navbar.admin")} ({filteredUsers.length})
             </h2>
           </div>
 
           {filteredUsers.length === 0 ? (
             <div className="text-center py-16">
               <FaUsers className="mx-auto text-gray-300 mb-4" size={64} />
-              <p className="text-gray-500 text-lg">Aucun utilisateur trouvé</p>
+              <p className="text-gray-500 text-lg">{t("admin.no_users_found")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto p-4 sm:p-6">
@@ -202,7 +203,7 @@ function AdminUsersPage() {
                         </div>
                         <div>
                           <p className="font-bold text-gray-800 text-lg">{u.firstname} {u.lastname}</p>
-                          <p className="text-xs text-gray-500">Inscrit le {formatDate(u.created_at)}</p>
+                          <p className="text-xs text-gray-500">{t("admin.joined_date")} {formatDate(u.created_at)}</p>
                         </div>
                       </div>
 
@@ -213,7 +214,7 @@ function AdminUsersPage() {
                           : "bg-gray-100 text-gray-600 border-gray-200"
                       }`}>
                         {u.role === "admin" ? <FaUserShield size={10} /> : <FaUser size={10} />}
-                        {u.role === "admin" ? "Admin" : "Client"}
+                        {u.role === "admin" ? t("navbar.admin") : t("navbar.profile")}
                       </span>
                     </div>
 
@@ -247,7 +248,7 @@ function AdminUsersPage() {
                         }`}
                       >
                         <FaTrash />
-                        {u.email === ADMIN_EMAIL ? "Impossible" : "Supprimer"}
+                        {u.email === ADMIN_EMAIL ? t("admin.close") : t("common.delete")}
                       </button>
                     </div>
                   </div>

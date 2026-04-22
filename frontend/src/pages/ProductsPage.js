@@ -22,6 +22,7 @@ import EmptyState     from "../components/EmptyState";
 import Pagination     from "../components/Pagination";
 import ProductCard    from "../components/ProductCard";
 import Navbar         from "../components/Navbar";
+import SEO            from "../components/SEO";
 
 const API_URL      = API.PRODUCTS;
 const ADMIN_EMAIL  = "zrirhabibah@gmail.com";
@@ -324,6 +325,11 @@ function ProductsPage() {
   // ── Render ───────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FCFAED] via-[#FFF5E6] to-[#FCFAED]">
+      <SEO 
+        title={t("navbar.products") || "Nos Produits"}
+        description="Découvrez notre catalogue de produits artisanaux 100% naturels : Zrir, Bsissa et autres délices traditionnels tunisiens. Fait main avec passion par Habibah."
+        keywords="Zrir, Bsissa, produits artisanaux, 100% naturel, Habibah, tradition tunisienne, délices tunisiens"
+      />
 
       {/* ── Navbar ────────────────────────────────────────────── */}
       <Navbar />
@@ -571,8 +577,8 @@ function ProductsPage() {
                           value={type} onChange={e => setType(e.target.value)}
                           className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)]"
                         >
-                          <option value="Zrir">{t('home.zrir_label') || "Zrir"}</option>
-                          <option value="Bsissa">{t('home.bsissa_label') || "Bsissa"}</option>
+                          <option value="Zrir">Zrir</option>
+                          <option value="Bsissa">Bsissa</option>
                         </select>
                       </div>
 
@@ -602,10 +608,10 @@ function ProductsPage() {
                               key={index}
                               initial={{ scale: 0.8, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
-                              className="bg-[var(--primary-color)] bg-opacity-10 px-3 py-1.5 rounded-lg flex items-center gap-2 border border-[var(--primary-color)] border-opacity-30"
+                              className="bg-[var(--primary-color)] bg-opacity-10 px-3 py-1.5 rounded-lg flex  items-center gap-2 border border-[var(--primary-color)] border-opacity-30"
                             >
-                              <FaLeaf className="text-[var(--primary-color)] text-xs" />
-                              <span className="text-gray-700 text-sm">{ing}</span>
+                              <FaLeaf className="text-[var(--primary-color)] text-xs text-white" />
+                              <span className="text-white text-sm">{ing}</span>
                               <button type="button" onClick={() => handleRemoveIngredient(index)} className="text-red-400 hover:text-red-600 transition">
                                 <FaTimes size={12} />
                               </button>
@@ -886,10 +892,10 @@ function ProductsPage() {
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
               {[
-                { icon: <FaPhone className="text-2xl mb-2" />,        label: "Téléphone", value: "+216 XX XXX XXX" },
-                { icon: <FaEnvelope className="text-2xl mb-2" />,     label: "Email",     value: "contact@habibah.tn" },
+                { icon: <FaPhone className="text-2xl mb-2" />,        label: "Téléphone", value: "+216 25 257 099" },
+                { icon: <FaEnvelope className="text-2xl mb-2" />,     label: "Email",     value: "zrirhabibah@gmail.com" },
                 { icon: <FaMapMarkerAlt className="text-2xl mb-2" />, label: "Adresse",   value: "Tunis, Tunisie" },
-                { icon: <FaClock className="text-2xl mb-2" />,        label: "Horaires",  value: "Lun–Ven : 9h–18h" },
+                { icon: <FaClock className="text-2xl mb-2" />,        label: "Horaires",  value: "7J/7 : 24H/24" },
               ].map(({ icon, label, value }) => (
                 <motion.div
                   key={label}

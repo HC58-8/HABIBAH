@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { MdPending } from "react-icons/md";
 import { GiConfirmed } from "react-icons/gi";
+import { useTranslation } from "react-i18next";
 import PageHeader from "../components/PageHeader";
 
 import { API, getImageUrl } from "../config/api";
@@ -18,6 +19,7 @@ const ORDER_API = API.ORDERS;
 const PRODUCT_API = API.PRODUCTS;
 
 function MyOrdersPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   
   // États
@@ -38,32 +40,32 @@ function MyOrdersPage() {
   // Statuts possibles avec couleurs et icônes
   const statusConfig = {
     pending: { 
-      label: "En attente", 
+      labelKey: "admin.status.pending", 
       color: "bg-yellow-100 text-yellow-800 border-yellow-300",
       icon: <MdPending className="text-yellow-600" />
     },
     confirmed: { 
-      label: "Confirmée", 
+      labelKey: "admin.status.confirmed", 
       color: "bg-blue-100 text-blue-800 border-blue-300",
       icon: <GiConfirmed className="text-blue-600" />
     },
     preparing: { 
-      label: "En préparation", 
+      labelKey: "admin.status.preparing", 
       color: "bg-purple-100 text-purple-800 border-purple-300",
       icon: <FaBoxOpen className="text-purple-600" />
     },
     shipped: { 
-      label: "Expédiée", 
+      labelKey: "admin.status.shipped", 
       color: "bg-indigo-100 text-indigo-800 border-indigo-300",
       icon: <FaTruck className="text-indigo-600" />
     },
     delivered: { 
-      label: "Livrée", 
+      labelKey: "admin.status.delivered", 
       color: "bg-green-100 text-green-800 border-green-300",
       icon: <FaCheck className="text-green-600" />
     },
     cancelled: { 
-      label: "Annulée", 
+      labelKey: "admin.status.cancelled", 
       color: "bg-red-100 text-red-800 border-red-300",
       icon: <FaTimes className="text-red-600" />
     }
@@ -132,14 +134,14 @@ function MyOrdersPage() {
           console.log("❌ 11. Token invalide ou expiré - Nettoyage localStorage");
           localStorage.removeItem("token");
           localStorage.removeItem("user");
-          alert("Session expirée. Veuillez vous reconnecter.");
+          alert(t("user_orders.session_expired"));
           navigate("/account");
         } else if (error.response?.status === 403) {
-          alert("Accès non autorisé");
+          alert(t("user_orders.unauthorized"));
         } else if (error.code === 'ERR_NETWORK') {
-          alert("Erreur de connexion au serveur. Vérifiez que le backend est lancé.");
+          alert(t("user_orders.network_error"));
         } else {
-          alert("Erreur lors du chargement de vos commandes");
+          alert(t("user_orders.load_error"));
         }
       } finally {
         setLoading(false);
@@ -168,7 +170,7 @@ function MyOrdersPage() {
       
     } catch (error) {
       console.error("❌ Erreur chargement détails produit:", error);
-      alert("Erreur lors du chargement des détails du produit");
+      alert(t("user_orders.load_error"));
     } finally {
       setLoadingProductDetails(false);
     }
@@ -219,7 +221,7 @@ function MyOrdersPage() {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(order => 
         order.id?.toString().includes(term) ||
-        order.customer_name?.toLowerCase().includes(term) ||
+        order.customer?.name?.toLowerCase().includes(term) ||
         order.items?.some(item => 
           item.productName?.toLowerCase().includes(term)
         )
@@ -246,18 +248,16 @@ function MyOrdersPage() {
   };
 
   // ================= CONSTRUIRE URL IMAGE =================
-  const getImageUrl = (productId) => {
+  const getProductMainImage = (productId) => {
     const imagePath = productImages[productId];
     if (!imagePath) return null;
     if (imagePath.startsWith('http')) return imagePath;
-  const getLocalImageUrl = (productId, imagePath) => {
     return getImageUrl(imagePath);
-  };
   };
 
   // ================= FORMATER INGRÉDIENTS =================
   const formatIngredients = (ingredients) => {
-    if (!ingredients) return "Non spécifié";
+    if (!ingredients) return t("common.not_specified");
     if (Array.isArray(ingredients)) return ingredients.join(", ");
     if (typeof ingredients === 'string') return ingredients;
     return JSON.stringify(ingredients);
@@ -282,7 +282,7 @@ function MyOrdersPage() {
       <div className="min-h-screen bg-[#FCFAED] pt-24 flex items-center justify-center">
         <div className="text-center">
           <FaSpinner className="animate-spin text-[var(--secondary-color)] mx-auto mb-4" size={48} />
-          <p className="text-gray-600">Chargement de vos commandes...</p>
+          <p className="text-gray-600">{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -297,12 +297,12 @@ function MyOrdersPage() {
           onClick={() => navigate("/")}
           className="flex items-center gap-2 mb-6 text-[var(--primary-color)] hover:text-[var(--secondary-color)] font-semibold transition"
         >
-          <FaArrowLeft /> Retour à l'accueil
+          <FaArrowLeft /> {t("navbar.back")}
         </button>
 
         <PageHeader 
-          title="Mes commandes" 
-          subtitle={`${user?.firstname || ''} ${user?.lastname || ''} - Historique de vos commandes`} 
+          title={t("user_orders.title")} 
+          subtitle={`${user?.firstname || ''} ${user?.lastname || ''} - ${t("user_orders.history")}`} 
         />
 
         {/* Informations utilisateur et statistiques */}
@@ -323,30 +323,30 @@ function MyOrdersPage() {
                   </p>
                   <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
                     <FaUser className="text-[var(--secondary-color)]" />
-                    {user.provider === 'google' ? 'Compte Google' : 'Compte local'}
+                    {user.provider === 'google' ? 'Google' : t("profile.local_auth")}
                   </p>
                 </div>
               </div>
 
               {/* Statistiques rapides */}
               <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-[var(--primary-color)]">{stats.total}</p>
-                  <p className="text-xs text-gray-500">Total</p>
+                  <div className="bg-gray-50 p-3 rounded-xl text-center border border-gray-100">
+                    <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+                    <p className="text-xs text-gray-500">{t("user_orders.stats.total")}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl text-center border border-gray-100">
+                    <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                    <p className="text-xs text-gray-500">{t("user_orders.stats.pending")}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl text-center border border-gray-100">
+                    <p className="text-2xl font-bold text-green-600">{stats.delivered}</p>
+                    <p className="text-xs text-gray-500">{t("user_orders.stats.delivered")}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl text-center border border-gray-100">
+                    <p className="text-2xl font-bold text-red-600">{stats.cancelled}</p>
+                    <p className="text-xs text-gray-500">{t("user_orders.stats.cancelled")}</p>
+                  </div>
                 </div>
-                <div className="bg-yellow-50 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-                  <p className="text-xs text-gray-500">En attente</p>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-blue-600">{stats.confirmed}</p>
-                  <p className="text-xs text-gray-500">Confirmées</p>
-                </div>
-                <div className="bg-green-50 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-green-600">{stats.delivered}</p>
-                  <p className="text-xs text-gray-500">Livrées</p>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -358,7 +358,7 @@ function MyOrdersPage() {
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher par numéro de commande ou produit..."
+                placeholder={t("user_orders.search_ph")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] transition outline-none"
@@ -370,9 +370,9 @@ function MyOrdersPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] transition outline-none bg-white"
             >
-              <option value="all">Tous les statuts</option>
+              <option value="all">{t("user_orders.all_status")}</option>
               {Object.entries(statusConfig).map(([key, config]) => (
-                <option key={key} value={key}>{config.label}</option>
+                <option key={key} value={key}>{t(config.labelKey)}</option>
               ))}
             </select>
           </div>
@@ -381,19 +381,19 @@ function MyOrdersPage() {
         {/* Liste des commandes */}
         <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-[var(--primary-color)]">
           <h2 className="text-xl font-bold text-[var(--primary-color)] mb-6 flex items-center gap-2">
-            <FaHistory /> Historique des commandes ({filteredOrders.length})
+            <FaHistory /> {t("user_orders.history")} ({filteredOrders.length})
           </h2>
 
           {filteredOrders.length === 0 ? (
             <div className="text-center py-12">
               <FaShoppingBag className="mx-auto text-gray-300 mb-4" size={64} />
-              <p className="text-xl text-gray-500 mb-2">Aucune commande trouvée</p>
-              <p className="text-gray-400 mb-6">Vous n'avez pas encore passé de commande</p>
+              <p className="text-xl text-gray-500 mb-2">{t("user_orders.no_orders")}</p>
+              <p className="text-gray-400 mb-6">{t("user_orders.no_orders_desc")}</p>
               <button
                 onClick={() => navigate("/")}
                 className="px-8 py-4 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] transition font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Découvrir nos produits
+                {t("user_orders.explore_btn")}
               </button>
             </div>
           ) : (
@@ -414,7 +414,7 @@ function MyOrdersPage() {
                         </p>
                         <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
                           <FaMapMarkerAlt className="text-[var(--secondary-color)]" />
-                          {order.customer_address?.substring(0, 50)}...
+                          {order.customer?.address?.substring(0, 50)}...
                         </p>
                       </div>
                     </div>
@@ -422,10 +422,10 @@ function MyOrdersPage() {
                     <div className="flex items-center gap-3">
                       <span className={`px-4 py-2 rounded-full text-sm font-semibold border flex items-center gap-2 ${statusConfig[order.status]?.color}`}>
                         {statusConfig[order.status]?.icon}
-                        {statusConfig[order.status]?.label}
+                        {t(statusConfig[order.status]?.labelKey)}
                       </span>
                       <span className="text-2xl font-bold text-[var(--secondary-color)]">
-                        {parseFloat(order.total_amount).toFixed(3)} DT
+                        {parseFloat(order.total).toFixed(3)} DT
                       </span>
                     </div>
                   </div>
@@ -433,12 +433,12 @@ function MyOrdersPage() {
                   {/* Produits commandés */}
                   <div className="mb-4">
                     <p className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                      <FaShoppingBag /> Produits commandés :
+                      <FaShoppingBag /> {t("user_orders.items_title")} :
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {order.items?.map((item, idx) => {
                         const productId = item.productId;
-                        const imageUrl = getImageUrl(productId);
+                        const imageUrl = getProductMainImage(productId);
                         
                         return (
                           <div 
@@ -472,13 +472,13 @@ function MyOrdersPage() {
                                 <p className="font-semibold text-gray-800 truncate">
                                   {item.productName}
                                 </p>
-                                <FaInfoCircle className="text-[var(--secondary-color)] text-xs opacity-0 group-hover:opacity-100 transition" title="Cliquez pour voir les détails" />
+                                <FaInfoCircle className="text-[var(--secondary-color)] text-xs opacity-0 group-hover:opacity-100 transition" title={t("user_orders.details_tooltip")} />
                               </div>
                               <div className="flex flex-wrap gap-x-4 text-sm">
                                 {item.size && (
-                                  <span className="text-gray-500">Taille: {item.size}</span>
+                                  <span className="text-gray-500">{t("user_orders.table.size")}: {item.size}</span>
                                 )}
-                                <span className="text-gray-500">Qté: {item.quantity}</span>
+                                <span className="text-gray-500">{t("user_orders.table.qty")}: {item.quantity}</span>
                                 <span className="font-semibold text-[var(--secondary-color)]">
                                   {parseFloat(item.price).toFixed(3)} DT
                                 </span>
@@ -487,9 +487,9 @@ function MyOrdersPage() {
                             
                             {/* Sous-total */}
                             <div className="text-right">
-                              <p className="text-xs text-gray-500">Sous-total</p>
+                              <p className="text-xs text-gray-500">{t("user_orders.table.subtotal")}</p>
                               <p className="font-bold text-[var(--primary-color)]">
-                                {parseFloat(item.subtotal).toFixed(3)} DT
+                                {parseFloat((item.price || 0) * (item.quantity || 1)).toFixed(3)} DT
                               </p>
                             </div>
                           </div>
@@ -502,7 +502,7 @@ function MyOrdersPage() {
                   {order.note && (
                     <div className="bg-yellow-50 rounded-lg p-3 mb-4 border border-yellow-200">
                       <p className="text-sm text-yellow-800">
-                        <span className="font-semibold">📝 Note :</span> {order.note}
+                        <span className="font-semibold">📝 {t("order.note")} :</span> {order.note}
                       </p>
                     </div>
                   )}
@@ -516,7 +516,7 @@ function MyOrdersPage() {
                       }}
                       className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-medium shadow hover:shadow-md"
                     >
-                      <FaEye /> Voir détails complets
+                      <FaEye /> {t("user_orders.details_btn")}
                     </button>
                   </div>
                 </div>
@@ -533,7 +533,7 @@ function MyOrdersPage() {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6 sticky top-0 bg-white pb-4 border-b">
                 <h3 className="text-2xl font-bold text-[var(--primary-color)]">
-                  Détails commande #{selectedOrder.id}
+                  {t("user_orders.modal_title", { id: selectedOrder.id })}
                 </h3>
                 <button
                   onClick={() => setShowDetails(false)}
@@ -545,11 +545,11 @@ function MyOrdersPage() {
 
               {/* Statut actuel */}
               <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm text-gray-500 mb-2">Statut actuel</p>
+                <p className="text-sm text-gray-500 mb-2">{t("user_orders.current_status")}</p>
                 <div className="flex items-center gap-3">
                   <span className={`px-4 py-2 rounded-full font-semibold flex items-center gap-2 text-base ${statusConfig[selectedOrder.status]?.color}`}>
                     {statusConfig[selectedOrder.status]?.icon}
-                    {statusConfig[selectedOrder.status]?.label}
+                    {t(statusConfig[selectedOrder.status]?.labelKey)}
                   </span>
                   <span className="text-gray-400">|</span>
                   <span className="text-sm text-gray-500 flex items-center gap-2">
@@ -563,58 +563,58 @@ function MyOrdersPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="bg-[#FCFAED] p-4 rounded-xl">
                   <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2 text-lg">
-                    <FaUser /> Client
+                    <FaUser /> {t("order.your_info")}
                   </h4>
-                  <p className="mb-2"><span className="font-medium">Nom:</span> {selectedOrder.customer_name}</p>
-                  <p className="mb-2"><span className="font-medium">Téléphone:</span> {selectedOrder.customer_phone}</p>
-                  {selectedOrder.customer_email && (
-                    <p className="mb-2"><span className="font-medium">Email:</span> {selectedOrder.customer_email}</p>
+                  <p className="mb-2"><span className="font-medium">{t("order.name")}:</span> {selectedOrder.customer?.name}</p>
+                  <p className="mb-2"><span className="font-medium">{t("order.phone")}:</span> {selectedOrder.customer?.phone}</p>
+                  {selectedOrder.customer?.email && (
+                    <p className="mb-2"><span className="font-medium">Email:</span> {selectedOrder.customer?.email}</p>
                   )}
                 </div>
 
                 <div className="bg-[#FCFAED] p-4 rounded-xl">
                   <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2 text-lg">
-                    <FaMapMarkerAlt /> Livraison
+                    <FaMapMarkerAlt /> {t("order.address")}
                   </h4>
-                  <p className="mb-2"><span className="font-medium">Adresse:</span> {selectedOrder.customer_address}</p>
+                  <p className="mb-2"><span className="font-medium">{t("order.address")}:</span> {selectedOrder.customer?.address}</p>
                   {selectedOrder.note && (
-                    <p className="mb-2"><span className="font-medium">Note:</span> {selectedOrder.note}</p>
+                    <p className="mb-2"><span className="font-medium">{t("order.note")}:</span> {selectedOrder.note}</p>
                   )}
                 </div>
               </div>
 
               {/* Produits commandés */}
               <div className="mb-6">
-                <h4 className="font-semibold text-[var(--primary-color)] mb-3 text-lg">Produits commandés</h4>
+                <h4 className="font-semibold text-[var(--primary-color)] mb-3 text-lg">{t("user_orders.items_title")}</h4>
                 <div className="bg-gray-50 rounded-xl overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] text-white">
                       <tr>
-                        <th className="px-4 py-3 text-left">Produit</th>
-                        <th className="px-4 py-3 text-left">Taille</th>
-                        <th className="px-4 py-3 text-right">Prix unit.</th>
-                        <th className="px-4 py-3 text-right">Qté</th>
-                        <th className="px-4 py-3 text-right">Total</th>
+                        <th className="px-4 py-3 text-left">{t("user_orders.table.product")}</th>
+                        <th className="px-4 py-3 text-left">{t("user_orders.table.size")}</th>
+                        <th className="px-4 py-3 text-right">{t("user_orders.table.price")}</th>
+                        <th className="px-4 py-3 text-right">{t("user_orders.table.qty")}</th>
+                        <th className="px-4 py-3 text-right">{t("user_orders.table.total")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {selectedOrder.items?.map((item, idx) => (
                         <tr key={idx} className="hover:bg-gray-100">
-                          <td className="px-4 py-3 font-medium">{item.productName}</td>
-                          <td className="px-4 py-3">{item.size || '-'}</td>
-                          <td className="px-4 py-3 text-right">{parseFloat(item.price).toFixed(3)} DT</td>
+                          <td className="px-4 py-3 font-medium">{item.product_name || item.productname || item.productName || item.name}</td>
+                          <td className="px-4 py-3">{item.product_size || item.size || '-'}</td>
+                          <td className="px-4 py-3 text-right">{parseFloat(item.price || 0).toFixed(3)} DT</td>
                           <td className="px-4 py-3 text-right">{item.quantity}</td>
                           <td className="px-4 py-3 text-right font-semibold text-[var(--secondary-color)]">
-                            {parseFloat(item.subtotal).toFixed(3)} DT
+                            {parseFloat((item.price || 0) * (item.quantity || 1)).toFixed(3)} DT
                           </td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot className="bg-gray-100 font-bold">
                       <tr>
-                        <td colSpan="4" className="px-4 py-3 text-right">Total</td>
+                        <td colSpan="4" className="px-4 py-3 text-right">{t("user_orders.table.total")}</td>
                         <td className="px-4 py-3 text-right text-[var(--secondary-color)] text-xl">
-                          {parseFloat(selectedOrder.total_amount).toFixed(3)} DT
+                          {parseFloat(selectedOrder.total).toFixed(3)} DT
                         </td>
                       </tr>
                     </tfoot>
@@ -628,7 +628,7 @@ function MyOrdersPage() {
                   onClick={() => setShowDetails(false)}
                   className="px-6 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition font-medium"
                 >
-                  Fermer
+                  {t("user_orders.close")}
                 </button>
               </div>
             </div>
@@ -636,113 +636,150 @@ function MyOrdersPage() {
         </div>
       )}
 
-      {/* Modal Détails Produit */}
+      {/* Modal Détails Produit (UI Pro) */}
       {showProductDetails && selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6 sticky top-0 bg-white pb-4 border-b">
-                <h3 className="text-2xl font-bold text-[var(--primary-color)]">
-                  {selectedProduct.name}
-                </h3>
-                <button
-                  onClick={() => setShowProductDetails(false)}
-                  className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition"
-                >
-                  <FaTimes size={24} />
-                </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] animate-fadeIn">
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            
+            {/* Header Pro */}
+            <div className="bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] p-6 text-white flex justify-between items-center flex-shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md">
+                  <FaShoppingBag className="text-2xl text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold tracking-tight">
+                    {selectedProduct.name}
+                  </h3>
+                  <p className="text-white/80 text-sm font-medium flex items-center gap-2">
+                    <span className="px-2 py-0.5 bg-white/20 rounded-full">{selectedProduct.type || t("common.not_specified")}</span>
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={() => setShowProductDetails(false)}
+                className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
 
+            {/* Content */}
+            <div className="p-8 overflow-y-auto custom-scrollbar">
               {loadingProductDetails ? (
-                <div className="text-center py-12">
-                  <FaSpinner className="animate-spin text-[var(--secondary-color)] mx-auto mb-4" size={48} />
-                  <p className="text-gray-600">Chargement des détails...</p>
+                <div className="flex flex-col items-center justify-center py-20">
+                  <FaSpinner className="animate-spin text-[var(--secondary-color)] mb-4" size={50} />
+                  <p className="text-gray-500 font-medium animate-pulse">{t("common.loading_details")}</p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                   
-                  {/* Images du produit */}
-                  {selectedProduct.images && selectedProduct.images.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2">
-                        <FaImage /> Images
-                      </h4>
-                      <div className="grid grid-cols-3 gap-4">
-                        {selectedProduct.images.map((img, idx) => (
-                          <div key={idx} className="relative group">
-                            <img
-                              src={getImageUrl(img)}
-                              alt={`${selectedProduct.name} - ${idx + 1}`}
-                              className="w-full h-32 object-cover rounded-lg border-2 border-gray-200 group-hover:border-[var(--secondary-color)] transition"
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.style.display = 'none';
-                                e.target.parentElement.innerHTML = '<div class="w-full h-32 flex items-center justify-center bg-gray-100 rounded-lg border-2 border-gray-200"><FaImage className="text-gray-400" /></div>';
-                              }}
-                            />
-                            {idx === selectedProduct.main_image_index && (
-                              <span className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                Principale
-                              </span>
-                            )}
+                  {/* Colonne Gauche: Images Galleria */}
+                  <div className="space-y-4">
+                    {selectedProduct.images && selectedProduct.images.length > 0 ? (
+                      <>
+                        <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-gray-50 relative group">
+                          <img
+                            src={getImageUrl(selectedProduct.images[selectedProduct.main_image_index || 0])}
+                            alt={selectedProduct.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-[var(--primary-color)] px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                            Principale
                           </div>
-                        ))}
+                        </div>
+                        {selectedProduct.images.length > 1 && (
+                          <div className="grid grid-cols-3 gap-3">
+                            {selectedProduct.images.map((img, idx) => {
+                              if (idx === (selectedProduct.main_image_index || 0)) return null;
+                              return (
+                                <div key={idx} className="aspect-square rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:border-[var(--secondary-color)] transition-all cursor-pointer">
+                                  <img
+                                    src={getImageUrl(img)}
+                                    alt={`${selectedProduct.name} ${idx}`}
+                                    className="w-full h-full object-cover hover:opacity-80"
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="w-full aspect-square rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
+                        <FaImage size={64} className="mb-4 opacity-50" />
+                        <p className="font-medium">Aucune image disponible</p>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
-                  {/* Informations générales */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-[#FCFAED] p-4 rounded-xl">
-                      <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2">
-                        <FaInfoCircle /> Informations générales
+                  {/* Colonne Droite: Infos & Variantes */}
+                  <div className="flex flex-col gap-6">
+                    {/* Description */}
+                    <div className="bg-orange-50/50 rounded-2xl p-6 border border-orange-100">
+                      <h4 className="flex items-center gap-2 text-lg font-bold text-orange-900 mb-3">
+                        <FaInfoCircle className="text-orange-500" /> Description
                       </h4>
-                      <p className="mb-2"><span className="font-medium">Nom:</span> {selectedProduct.name}</p>
-                      <p className="mb-2"><span className="font-medium">Type:</span> {selectedProduct.type || 'Non spécifié'}</p>
-                      <p className="mb-2"><span className="font-medium">Description:</span> {selectedProduct.description || 'Aucune description'}</p>
+                      <p className="text-orange-900/80 leading-relaxed text-sm">
+                        {selectedProduct.description || t("user_orders.no_description")}
+                      </p>
                     </div>
 
-                    <div className="bg-[#FCFAED] p-4 rounded-xl">
-                      <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2">
-                        <FaBoxOpen /> Variantes
+                    {/* Ingrédients */}
+                    {selectedProduct.ingredients && (
+                      <div className="bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100">
+                        <h4 className="flex items-center gap-2 text-lg font-bold text-emerald-900 mb-3">
+                          <FaBoxOpen className="text-emerald-500" /> {t("products.ingredients")}
+                        </h4>
+                        <p className="text-emerald-900/80 leading-relaxed text-sm">
+                          {formatIngredients(selectedProduct.ingredients)}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Variantes */}
+                    <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100 flex-1">
+                      <h4 className="flex items-center gap-2 text-lg font-bold text-blue-900 mb-4">
+                        <FaShoppingBag className="text-blue-500" /> {t("user_orders.variants")}
                       </h4>
                       {selectedProduct.variants && selectedProduct.variants.length > 0 ? (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {selectedProduct.variants.map((variant, idx) => (
-                            <div key={idx} className="border-b border-gray-200 pb-2 last:border-0">
-                              <p className="font-medium">{variant.size}</p>
-                              <p className="text-sm text-gray-600">Prix: {variant.price} DT</p>
-                              {variant.weight && <p className="text-sm text-gray-600">Poids: {variant.weight}</p>}
+                            <div key={idx} className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-blue-50 hover:border-blue-200 transition-all group">
+                              <span className="font-bold text-gray-700 bg-gray-100 px-3 py-1 rounded-lg group-hover:bg-blue-100 group-hover:text-blue-800 transition">
+                                {variant.size}
+                              </span>
+                              <div className="text-right">
+                                <span className="block text-lg font-black text-[var(--secondary-color)]">
+                                  {parseFloat(variant.price).toFixed(3)} DT
+                                </span>
+                                {variant.weight && (
+                                  <span className="block text-xs text-gray-400 font-medium">Poids: {variant.weight}</span>
+                                )}
+                              </div>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-gray-500">Aucune variante</p>
+                        <p className="text-blue-900/60 font-medium text-center py-4">{t("user_orders.no_variants")}</p>
                       )}
                     </div>
                   </div>
-
-                  {/* Ingrédients */}
-                  {selectedProduct.ingredients && (
-                    <div className="bg-[#FCFAED] p-4 rounded-xl">
-                      <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2">
-                        Ingrédients
-                      </h4>
-                      <p className="text-gray-700">{formatIngredients(selectedProduct.ingredients)}</p>
-                    </div>
-                  )}
                 </div>
               )}
-
-              {/* Bouton fermer */}
-              <div className="flex justify-end mt-6">
-                <button
-                  onClick={() => setShowProductDetails(false)}
-                  className="px-6 py-3 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] transition font-medium"
-                >
-                  Fermer
-                </button>
-              </div>
+            </div>
+            
+            {/* Pied Pro */}
+            <div className="bg-gray-50 border-t border-gray-100 p-6 flex justify-end flex-shrink-0 rounded-b-[2rem]">
+              <button
+                onClick={() => setShowProductDetails(false)}
+                className="px-8 py-3.5 bg-gray-900 text-white rounded-xl hover:bg-black hover:shadow-lg transition-all font-bold text-sm"
+              >
+                Fermer les détails
+              </button>
             </div>
           </div>
         </div>

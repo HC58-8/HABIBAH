@@ -4,10 +4,12 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FaArrowLeft, FaLeaf, FaShoppingCart, FaImage,
-  FaStar, FaTag, FaBoxOpen, FaSpinner
+  FaStar, FaTag, FaBoxOpen, FaSpinner, FaCheck
 } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { API, getImageUrl } from "../config/api";
+import { useCart } from "../context/CartContext";
+import SEO from "../components/SEO";
 
 const API_URL = API.PRODUCTS;
 
@@ -16,11 +18,14 @@ function ProductDetailPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const [product, setProduct]           = useState(null);
-  const [loading, setLoading]           = useState(true);
-  const [activeImage, setActiveImage]   = useState(0);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState(null);
-  const [error, setError]               = useState(null);
+  const [error, setError] = useState(null);
+  const [added, setAdded] = useState(false);
+
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -39,7 +44,14 @@ function ProductDetailPage() {
       }
     };
     fetchProduct();
-  }, [id]);
+  }, [id, t]);
+
+  const handleAddToCart = () => {
+    if (!selectedSize || !product) return;
+    addToCart(product, selectedSize);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
 
   if (loading) {
     return (
@@ -67,82 +79,126 @@ function ProductDetailPage() {
   const validImages = product.images?.filter(img => img) || [];
   const selectedVariant = product.variants?.find(v => v.size === selectedSize);
 
+  // Génération du Structured Data JSON-LD pour le SEO (Rich Snippets Google)
+  const ingredientString = product.ingredients && product.ingredients.length > 0 
+    ? ` Ingrédients 100% naturels : ${product.ingredients.join(', ')}.` 
+    : '';
+  const sizesString = product.variants && product.variants.length > 0
+    ? ` Formats disponibles : ${product.variants.map(v => v.size).join(', ')}.`
+    : '';
+    
+  const seoDescription = `${product.description || `Produit authentique ${product.name} par Habibah.`}${ingredientString}${sizesString} Produit artisanal tunisien fait maison.`;
+
+  const jsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": validImages.map(img => getImageUrl(img)),
+    "description": seoDescription,
+    "sku": `PROD-${product._id || product.id || id}`,
+    "brand": {
+      "@type": "Brand",
+      "name": "Habibah"
+    },
+    "offers": product.variants?.filter(v => v.price > 0).map(v => ({
+      "@type": "Offer",
+      "url": `${window.location.protocol}//${window.location.host}/produit/${id}?size=${v.size}`,
+      "priceCurrency": "TND",
+      "price": v.price,
+      "availability": "https://schema.org/InStock",
+      "itemCondition": "https://schema.org/NewCondition",
+      "name": `${product.name} - ${v.size}`
+    })) || []
+  };
+
+  const keywords = `${product.name}, ${product.type}, Zrir, Bsissa, artisanat tunisien, produits naturels, fait main, ${product.ingredients?.join(', ') || ''}`;
+
   return (
-    <div className="min-h-screen bg-[#FCFAED] py-10">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[calc(100vh)] pt-24 bg-[#FCFAED] py-8 flex flex-col items-center justify-center relative">
+      <SEO 
+        title={`${product.name} | 100% Naturel & Artisanal`} 
+        description={seoDescription.substring(0, 300)} 
+        image={validImages[0] ? getImageUrl(validImages[0]) : null}
+        type="product"
+        jsonLd={jsonLd}
+        keywords={keywords}
+      />
+      <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex flex-col">
 
         {/* Bouton retour */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 mb-8 text-[var(--primary-color)] hover:text-[var(--secondary-color)] font-semibold transition"
-        >
-          <FaArrowLeft /> {t("product_detail.back_to_products")}
-        </button>
+        <div className="mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-[var(--primary-color)] hover:text-[var(--secondary-color)] font-bold transition lg:bg-white lg:px-5 lg:py-2 lg:rounded-full lg:shadow-sm hover:shadow-md hover:scale-105 text-sm"
+          >
+            <FaArrowLeft size={12} /> {t("product_detail.back_to_products")}
+          </button>
+        </div>
 
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-[var(--primary-color)] border-opacity-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+        {/* Product Card Container */}
+        <div className="bg-white rounded-[1.5rem] shadow-xl border border-orange-100/50 flex flex-col lg:flex-row mb-8">
 
-            {/* ── Colonne images ──────────────────────────── */}
-            <div className="bg-gray-50 p-6 flex flex-col gap-4">
-              {/* Image principale */}
-              <div className="relative rounded-2xl overflow-hidden bg-gray-100 h-72 sm:h-96">
-                {validImages.length > 0 ? (
-                  <img
-                    src={getImageUrl(validImages[activeImage])}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-all duration-300"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <FaImage className="text-gray-400" size={64} />
-                  </div>
-                )}
-                {/* Badge type */}
-                <span className={`absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-full shadow ${
-                  product.type === "Zrir"
-                    ? "bg-[var(--primary-color)] text-white"
-                    : "bg-[var(--secondary-color)] text-white"
-                }`}>
-                  <FaTag className="inline mr-1" size={10} />
-                  {product.type}
-                </span>
-              </div>
+          {/* ── Colonne images ──────────────────────────── */}
+          <div className="lg:w-1/2 bg-[#FDFBF4] p-6 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-gray-100">
 
-              {/* Miniatures */}
-              {validImages.length > 1 && (
-                <div className="flex gap-3 justify-center flex-wrap">
-                  {validImages.map((img, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setActiveImage(i)}
-                      className={`relative w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-200 ${
-                        activeImage === i
-                          ? "border-[var(--secondary-color)] scale-105 shadow-md"
-                          : "border-gray-200 hover:border-[var(--secondary-color)]"
-                      }`}
-                    >
-                      <img
-                        src={getImageUrl(img)}
-                        alt={`vue ${i + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      {product.mainImageIndex === i && (
-                        <div className="absolute top-0.5 right-0.5 bg-yellow-400 rounded-full p-0.5">
-                          <FaStar size={8} className="text-white" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
+            {/* Image principale */}
+            <div className="relative rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100 w-full max-w-sm aspect-square mb-4 group">
+              {validImages.length > 0 ? (
+                <img
+                  src={getImageUrl(validImages[activeImage])}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <FaImage className="text-gray-400" size={64} />
                 </div>
               )}
+              {/* Badge type */}
+              <span className={`absolute top-4 left-4 px-4 py-1.5 text-xs font-black rounded-full shadow-md uppercase tracking-wider backdrop-blur-md ${product.type === "Zrir"
+                ? "bg-amber-100/80 text-amber-900 border border-amber-200"
+                : "bg-emerald-100/80 text-emerald-900 border border-emerald-200"
+                }`}>
+                <FaTag className="inline mr-1.5" size={10} />
+                {product.type}
+              </span>
             </div>
 
-            {/* ── Colonne infos ───────────────────────────── */}
-            <div className="p-8 flex flex-col gap-6">
+            {/* Miniatures */}
+            {validImages.length > 1 && (
+              <div className="flex gap-4 justify-center flex-wrap">
+                {validImages.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImage(i)}
+                    className={`relative w-20 h-20 rounded-2xl overflow-hidden border-[3px] transition-all duration-300 ${activeImage === i
+                      ? "border-[var(--secondary-color)] scale-110 shadow-lg hover:shadow-xl"
+                      : "border-transparent hover:border-gray-300 opacity-60 hover:opacity-100"
+                      }`}
+                  >
+                    <img
+                      src={getImageUrl(img)}
+                      alt={`vue ${i + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    {product.mainImageIndex === i && (
+                      <div className="absolute top-1 right-1 bg-yellow-400 rounded-full p-1 shadow-sm">
+                        <FaStar size={8} className="text-white" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-              {/* Nom */}
+          {/* ── Colonne infos ───────────────────────────── */}
+          <div className="lg:w-1/2 p-6 lg:p-8 flex flex-col bg-white">
+
+            <div className="space-y-6">
+              {/* Nom & Badge */}
               <div>
-                <h1 className="text-3xl font-bold text-[var(--primary-color)] mb-1">
+                <h1 className="text-3xl font-black text-[var(--primary-color)] tracking-tight mb-1">
                   {product.name}
                 </h1>
                 <div className="h-1 w-16 rounded-full bg-[var(--secondary-color)]" />
@@ -150,78 +206,99 @@ function ProductDetailPage() {
 
               {/* Description */}
               <div>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1">
                   {t("products.description")}
                 </h2>
-                <p className="text-gray-700 leading-relaxed text-base">
+                <p className="text-gray-600 leading-snug text-sm">
                   {product.description}
                 </p>
               </div>
 
               {/* Ingrédients */}
-              <div>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                  <FaLeaf className="inline text-[var(--primary-color)] mr-1" />
-                  {t("products.ingredients")}
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {product.ingredients?.map((ing, i) => (
-                    <span
-                      key={i}
-                      className="text-sm text-gray-800 bg-[var(--primary-color)] bg-opacity-10 px-3 py-1.5 rounded-full border border-[var(--primary-color)] border-opacity-40 font-medium"
-                    >
-                      {ing}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Choix de taille */}
-              <div>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                  {t("product_detail.choose_size")}
-                </h2>
-                <div className="flex flex-wrap gap-3">
-                  {product.variants?.map((v, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedSize(v.size)}
-                      className={`flex flex-col items-center px-5 py-3 rounded-xl border-2 transition-all duration-200 font-semibold ${
-                        selectedSize === v.size
-                          ? "border-[var(--secondary-color)] bg-[var(--secondary-color)] text-white shadow-md scale-105"
-                          : "border-gray-200 text-gray-700 hover:border-[var(--secondary-color)] hover:text-[var(--secondary-color)]"
-                      }`}
-                    >
-                      <span className="text-base">{v.size}</span>
-                      <span className={`text-xs mt-0.5 font-bold ${
-                        selectedSize === v.size ? "text-white" : "text-[var(--secondary-color)]"
-                      }`}>
-                        {v.price} DT
+              {product.ingredients && product.ingredients.length > 0 && (
+                <div>
+                  <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1.5 flex items-center">
+                    <FaLeaf className="inline text-[var(--primary-color)] mr-1.5" />
+                    {t("products.ingredients")}
+                  </h2>
+                  <div className="flex flex-wrap gap-1.5">
+                    {product.ingredients.map((ing, i) => (
+                      <span
+                        key={i}
+                        className="text-xs text-amber-900 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-100 font-semibold"
+                      >
+                        {ing}
                       </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Prix sélectionné */}
-              {selectedVariant && (
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-500 text-sm">{t("product_detail.price")} :</span>
-                  <span className="text-3xl font-bold text-[var(--secondary-color)]">
-                    {selectedVariant.price} DT
-                  </span>
-                  <span className="text-gray-400 text-sm">/ {selectedVariant.size}</span>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Bouton commander */}
-              <button
-                disabled={!selectedSize}
-                className="mt-auto flex items-center justify-center gap-3 px-8 py-4 bg-[var(--secondary-color)] text-white text-lg font-bold rounded-xl hover:bg-[var(--primary-color)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 shadow-lg"
-              >
-                <FaShoppingCart size={20} />
-                {t("product_detail.order_now")}
-              </button>
+              {/* Choix de taille */}
+              <div>
+                <h2 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">
+                  {t("product_detail.choose_size")}
+                </h2>
+                <div className="flex flex-wrap gap-3">
+                  {product.variants?.map((v, i) => {
+                    const isActive = selectedSize === v.size;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setSelectedSize(v.size)}
+                        className={`flex flex-col items-center justify-center w-20 h-20 rounded-xl border-2 transition-all duration-200 font-bold ${isActive
+                          ? "border-[var(--secondary-color)] bg-yellow-50 text-[var(--primary-color)] shadow-md shadow-yellow-500/10 scale-105"
+                          : "bg-white border-gray-100 text-gray-500 hover:border-yellow-200 hover:bg-yellow-50/30"
+                          }`}
+                      >
+                        <span className="text-base mb-0.5">{v.size}</span>
+                        <span className={`text-xs ${isActive ? "text-[var(--secondary-color)]" : "text-gray-400"}`}>
+                          {v.price} DT
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Action Area */}
+              <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-4 mt-2">
+                {/* Prix sélectionné */}
+                {selectedVariant && (
+                  <div className="flex flex-col">
+                    <span className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.1em] mb-0.5">{t("product_detail.price")}</span>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-2xl font-black text-[var(--primary-color)]">
+                        {selectedVariant.price} DT
+                      </span>
+                      <span className="text-gray-400 text-xs font-medium">/ {selectedVariant.size}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bouton commander */}
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!selectedSize || added}
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 text-white text-lg font-black rounded-xl transition-all duration-300 transform ${added
+                    ? "bg-green-500 scale-95 shadow-[0_4px_15px_-5px_rgba(34,197,94,0.4)]"
+                    : "bg-[var(--secondary-color)] hover:bg-[var(--primary-color)] hover:-translate-y-0.5 shadow-[0_4px_15px_-5px_rgba(234,179,8,0.4)] hover:shadow-[0_8px_20px_-5px_rgba(234,179,8,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    }`}
+                >
+                  {added ? (
+                    <span className="flex items-center gap-2">
+                      <FaCheck size={20} />
+                      {t("product_detail.added")}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <FaShoppingCart size={20} className={selectedSize ? "animate-bounce" : ""} />
+                      {t("product_detail.add_to_cart")}
+                    </span>
+                  )}
+                </button>
+              </div>
+
             </div>
           </div>
         </div>

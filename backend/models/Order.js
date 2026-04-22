@@ -26,76 +26,43 @@ const createOrder = async (orderData) => {
   try {
     await client.query('BEGIN');
 
-    // 1. Insérer la commande principale
+    // 1. Insérer la commande principale avec JSONB
     const orderQuery = `
       INSERT INTO orders (
-        customer_name, 
-        customer_phone, 
-        customer_address, 
-        customer_email,
-        note, 
         user_id, 
-        total_amount, 
+        customer, 
+        items, 
+        total, 
+        note, 
         status, 
         created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
+      VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
       RETURNING id, created_at;
     `;
 
     const orderValues = [
-      customer.name,
-      customer.phone,
-      customer.address,
-      customer.email || null,
-      note || null,
-      userId || null,  // ← ICI : userId est utilisé
+      userId || null,
+      JSON.stringify(customer),
+      JSON.stringify(items),
       total,
+      note || null,
       'pending'
     ];
 
-    console.log("🔍 [MODEL] orderValues avant insertion:", orderValues);
-    console.log("🔍 [MODEL] Valeur pour user_id dans la requête (index 5):", orderValues[5]);
+    console.log("🔍 [MODEL] orderValues avant insertion:", {
+      userId: orderValues[0],
+      customer: "Object...",
+      itemsCount: items?.length,
+      total: orderValues[3]
+    });
 
     const orderResult = await client.query(orderQuery, orderValues);
     const orderId = orderResult.rows[0].id;
 
-    console.log("✅ [MODEL] Commande insérée avec ID:", orderId);
-    console.log("✅ [MODEL] user_id inséré dans la base:", orderResult.rows[0].user_id || userId);
-
-    // 2. Insérer les détails de la commande (produits)
-    for (const item of items) {
-      const itemQuery = `
-        INSERT INTO order_items (
-          order_id,
-          product_id,
-          product_name,
-          product_size,
-          unit_price,
-          quantity,
-          subtotal
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7);
-      `;
-
-      const itemValues = [
-        orderId,
-        item.productId,
-        item.name,
-        item.size || null,
-        item.price,
-        item.quantity,
-        item.price * item.quantity
-      ];
-
-      await client.query(itemQuery, itemValues);
-      console.log(`✅ [MODEL] Item ${item.name} (x${item.quantity}) inséré pour commande ${orderId}`);
-    }
-
     await client.query('COMMIT');
     
-    console.log("✅ [MODEL] Commande créée avec succès, userId associé:", userId);
-    console.log("🔍 [MODEL] ===== FIN CRÉATION COMMANDE =====\n");
+    console.log("✅ [MODEL] Commande créée avec succès, ID:", orderId);
     
     return {
       id: orderId,
@@ -118,25 +85,8 @@ const getAllOrders = async () => {
     console.log("🔍 [MODEL] Récupération de toutes les commandes");
     
     const query = `
-      SELECT 
-        o.*,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', oi.id,
-              'productId', oi.product_id,
-              'productName', oi.product_name,
-              'size', oi.product_size,
-              'price', oi.unit_price,
-              'quantity', oi.quantity,
-              'subtotal', oi.subtotal
-            ) ORDER BY oi.id
-          ) FILTER (WHERE oi.id IS NOT NULL), '[]'
-        ) as items
-      FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      GROUP BY o.id
-      ORDER BY o.created_at DESC;
+      SELECT * FROM orders
+      ORDER BY created_at DESC;
     `;
     
     const result = await pool.query(query);
@@ -154,26 +104,9 @@ const getUserOrders = async (userId) => {
     console.log(`🔍 [MODEL] Récupération des commandes pour userId: ${userId}`);
     
     const query = `
-      SELECT 
-        o.*,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', oi.id,
-              'productId', oi.product_id,
-              'productName', oi.product_name,
-              'size', oi.product_size,
-              'price', oi.unit_price,
-              'quantity', oi.quantity,
-              'subtotal', oi.subtotal
-            ) ORDER BY oi.id
-          ) FILTER (WHERE oi.id IS NOT NULL), '[]'
-        ) as items
-      FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      WHERE o.user_id = $1
-      GROUP BY o.id
-      ORDER BY o.created_at DESC;
+      SELECT * FROM orders
+      WHERE user_id = $1
+      ORDER BY created_at DESC;
     `;
     
     const result = await pool.query(query, [userId]);
@@ -191,25 +124,8 @@ const getOrderById = async (orderId) => {
     console.log(`🔍 [MODEL] Récupération commande ID: ${orderId}`);
     
     const query = `
-      SELECT 
-        o.*,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', oi.id,
-              'productId', oi.product_id,
-              'productName', oi.product_name,
-              'size', oi.product_size,
-              'price', oi.unit_price,
-              'quantity', oi.quantity,
-              'subtotal', oi.subtotal
-            ) ORDER BY oi.id
-          ) FILTER (WHERE oi.id IS NOT NULL), '[]'
-        ) as items
-      FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      WHERE o.id = $1
-      GROUP BY o.id;
+      SELECT * FROM orders
+      WHERE id = $1;
     `;
     
     const result = await pool.query(query, [orderId]);
@@ -263,14 +179,8 @@ const deleteOrder = async (orderId) => {
     
     await client.query('BEGIN');
     
-    // Supprimer d'abord les items
-    await client.query('DELETE FROM order_items WHERE order_id = $1', [orderId]);
-    console.log(`✅ [MODEL] Items supprimés pour commande ${orderId}`);
-    
-    // Puis la commande
+    // Suppression simplifiée (plus besoin de supprimer order_items)
     const result = await client.query('DELETE FROM orders WHERE id = $1 RETURNING id', [orderId]);
-    
-    await client.query('COMMIT');
     
     if (result.rows[0]) {
       console.log(`✅ [MODEL] Commande ${orderId} supprimée avec succès`);

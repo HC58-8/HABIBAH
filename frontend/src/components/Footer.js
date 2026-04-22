@@ -64,13 +64,13 @@ function Footer() {
     {
       label: "Facebook",
       icon: <IconFacebook />,
-      href: "https://facebook.com/habibah",
+      href: "https://www.facebook.com/profile.php?id=61560995361604&rdid=qpOXST60gWhj3W16&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F17PaWRqFTn%2F#",
       color: "hover:bg-blue-600",
     },
     {
       label: "Instagram",
       icon: <IconInstagram />,
-      href: "https://instagram.com/habibah",
+      href: "https://www.instagram.com/zrirhabibah?igsh=MWt3cXFlaHRydXA0aA==",
       color: "hover:bg-gradient-to-br hover:from-pink-500 hover:to-orange-400",
     },
     {
@@ -82,7 +82,7 @@ function Footer() {
     {
       label: "WhatsApp",
       icon: <IconWhatsApp />,
-      href: "https://wa.me/21600000000",
+      href: "https://wa.me/21625257099",
       color: "hover:bg-green-500",
     },
   ];
@@ -207,7 +207,7 @@ function Footer() {
 
               <li>
                 <a
-                  href="tel:+21600000000"
+                  href="tel:+21625257099"
                   className="flex items-center gap-3 text-white/75 hover:text-white text-sm transition"
                 >
                   <span
@@ -216,7 +216,7 @@ function Footer() {
                   >
                     <IconPhone />
                   </span>
-                  +216 00 000 000
+                  +216 25 257 099
                 </a>
               </li>
 

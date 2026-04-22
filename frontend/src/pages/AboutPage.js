@@ -1,7 +1,6 @@
 // src/pages/AboutPage.js
-import React, { useEffect, useRef } from "react";
+import React, {  useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { motion, useInView } from "framer-motion";
 import {
   FaLeaf, FaHeart, FaAward, FaSeedling,
@@ -9,7 +8,6 @@ import {
   FaArrowRight, FaWhatsapp
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
-import bsisadecoImg from "../images/bsisadeco.jpg";
 
 // ── Animation variants ────────────────────────────────────────
 const fadeUp   = { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } } };
@@ -28,43 +26,40 @@ function AnimSection({ children, className = "", variants = fadeUp }) {
   );
 }
 
+// ── Données valeurs ───────────────────────────────────────────
+const values = [
+  { icon: <FaLeaf size={28} />,            title: "100% Naturel",      desc: "Aucun additif, aucun conservateur. Que des ingrédients purs choisis avec soin dans les terroirs tunisiens." },
+  { icon: <FaMortarPestle size={28} />,    title: "Fait à la Main",    desc: "Chaque pot est préparé artisanalement, en petites quantités, selon des recettes transmises de génération en génération." },
+  { icon: <FaHandHoldingHeart size={28} />,title: "Avec Amour",        desc: "Habibah, c'est un nom qui veut dire « bien-aimée ». Chaque préparation porte cette intention de soin et de générosité." },
+  { icon: <FaAward size={28} />,           title: "Qualité Premium",   desc: "Nous sélectionnons rigoureusement chaque ingrédient pour vous offrir le meilleur de la gastronomie tunisienne." },
+];
+
+const produits = [
+  {
+    nom: "Le Zrir",
+    couleur: "from-amber-800 to-amber-600",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    tag: "bg-amber-100 text-amber-800",
+    desc: "Mélange ancestral tunisien à base de sésame grillé, de miel pur et des fruits secs. Le Zrir est une douceur énergisante traditionnellement offerte aux femmes après l'accouchement et lors des grandes célébrations.",
+    varietes: ["Royal", "Classique", "Noisette", "Pistache", "Noix", "Pignon"],
+    icone: <FaStar size={20} />,
+  },
+  {
+    nom: "La Bsissa", 
+    couleur: "from-stone-700 to-stone-500",
+    bg: "bg-stone-50",
+    border: "border-stone-200",
+    tag: "bg-stone-100 text-stone-700",
+    desc: "Subtil mélange de céréales grillées, de légumineuses, d'épices aromatiques et de plantes médicinales. Riche en fibres et en protéines, la Bsissa est un trésor nutritionnel de la cuisine tunisienne.",
+    varietes: ["Traditionnelle", "Légère", "Épicée", "Spéciale"],
+    icone: <FaSeedling size={20} />,
+  },
+];
+
 // ── Page À propos ─────────────────────────────────────────────
 function AboutPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
-
-  const values = [
-    { icon: <FaLeaf size={28} />,            title: t('about.val_1_title'),      desc: t('about.val_1_desc') },
-    { icon: <FaMortarPestle size={28} />,    title: t('about.val_2_title'),      desc: t('about.val_2_desc') },
-    { icon: <FaHandHoldingHeart size={28} />,title: t('about.val_3_title'),      desc: t('about.val_3_desc') },
-    { icon: <FaAward size={28} />,           title: t('about.val_4_title'),      desc: t('about.val_4_desc') },
-  ];
-
-  const produits = [
-    {
-      nom: t('about.prod_1_name'),
-      couleur: "from-amber-800 to-amber-600",
-      bg: "bg-amber-50",
-      border: "border-amber-200",
-      tag: "bg-amber-100 text-amber-800",
-      tagText: t('about.prod_1_tag'),
-      desc: t('about.prod_1_desc'),
-      varietes: [t('about.var_royal'), t('about.var_classic'), t('about.var_hazelnut'), t('about.var_pistachio'), t('about.var_walnut'), t('about.var_pine')],
-      icone: <FaStar size={20} />,
-    },
-    {
-      nom: t('about.prod_2_name'),
-      image: bsisadecoImg,
-      couleur: "from-stone-700 to-stone-500",
-      bg: "bg-stone-50",
-      border: "border-stone-200",
-      tag: "bg-stone-100 text-stone-700",
-      tagText: t('about.prod_1_tag'),
-      desc: t('about.prod_2_desc'),
-      varietes: [t('about.var_traditional'), t('about.var_light'), t('about.var_spicy'), t('about.var_special')],
-      icone: <FaSeedling size={20} />,
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-[#FCFAED] overflow-x-hidden">
@@ -103,25 +98,27 @@ function AboutPage() {
             <motion.div variants={fadeUp}>
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border-2"
                 style={{ borderColor: "var(--secondary-color)", color: "var(--secondary-color)" }}>
-                <FaLeaf size={12} /> {t('about.hero_badge')}
+                <FaLeaf size={12} /> Artisanat tunisien depuis toujours
               </span>
             </motion.div>
 
             <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-black leading-none tracking-tight"
               style={{ fontFamily: "'Georgia', serif" }}>
-              <span style={{ color: "var(--primary-color)" }}>{t('about.hero_title_1')}</span>
+              <span style={{ color: "var(--primary-color)" }}>L'âme</span>
               <br />
-              <span className="text-gray-800">{t('about.hero_title_2')}</span>
+              <span className="text-gray-800">de la</span>
               <br />
-              <span style={{ color: "var(--secondary-color)" }}>{t('about.hero_title_3')}</span>
+              <span style={{ color: "var(--secondary-color)" }}>Tunisie</span>
               <br />
-              <span className="text-gray-800">{t('about.hero_title_4')}</span>
+              <span className="text-gray-800">dans chaque</span>
               <br />
-              <span style={{ color: "var(--primary-color)" }}>{t('about.hero_title_5')}</span>
+              <span style={{ color: "var(--primary-color)" }}>pot.</span>
             </motion.h1>
 
             <motion.p variants={fadeUp} className="text-lg text-gray-600 leading-relaxed max-w-lg">
-              {t('about.hero_desc')}
+              Habibah est née d'une passion profonde pour la gastronomie tunisienne authentique.
+              Chaque produit que nous préparons est un hommage aux recettes ancestrales de nos
+              grands-mères, fabriqué avec des ingrédients 100% naturels et sélectionnés avec soin.
             </motion.p>
 
             <motion.div variants={fadeUp} className="flex flex-wrap gap-4">
@@ -130,14 +127,14 @@ function AboutPage() {
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-xl"
                 style={{ background: "linear-gradient(135deg, var(--primary-color), var(--secondary-color))" }}
               >
-                {t('about.discover_btn')} <FaArrowRight size={14} className="rtl:rotate-180" />
+                Découvrir nos produits <FaArrowRight size={14} />
               </button>
               <button
                 onClick={() => navigate("/contact")}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold border-2 transition-all duration-300 hover:scale-105"
                 style={{ borderColor: "var(--primary-color)", color: "var(--primary-color)" }}
               >
-                {t('about.contact_btn')}
+                Nous contacter
               </button>
             </motion.div>
           </motion.div>
@@ -172,10 +169,10 @@ function AboutPage() {
               </div>
               {/* Badges flottants */}
               {[
-                { text: t('about.badge_1'), pos: "top-4 rtl:right-4 ltr:left-4",  bg: "var(--primary-color)" },
-                { text: t('about.badge_2'), pos: "top-4 rtl:left-4 ltr:right-4", bg: "var(--secondary-color)" },
-                { text: t('about.badge_3'), pos: "bottom-4 rtl:right-4 ltr:left-4",  bg: "var(--secondary-color)" },
-                { text: t('about.badge_4'), pos: "bottom-4 rtl:left-4 ltr:right-4", bg: "var(--primary-color)" },
+                { text: "100%\nNaturel", pos: "top-4 left-4",  bg: "var(--primary-color)" },
+                { text: "Fait\nMain",    pos: "top-4 right-4", bg: "var(--secondary-color)" },
+                { text: "Tunisie\n🇹🇳",  pos: "bottom-4 left-4",  bg: "var(--secondary-color)" },
+                { text: "Premium\n⭐",   pos: "bottom-4 right-4", bg: "var(--primary-color)" },
               ].map(({ text, pos, bg }) => (
                 <motion.div
                   key={text}
@@ -198,7 +195,7 @@ function AboutPage() {
           transition={{ duration: 1.5, repeat: Infinity }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-400"
         >
-          <span className="text-xs tracking-widest uppercase">{t('about.scroll_text')}</span>
+          <span className="text-xs tracking-widest uppercase">Découvrir</span>
           <div className="w-5 h-8 border-2 border-gray-300 rounded-full flex items-start justify-center p-1">
             <div className="w-1 h-2 bg-gray-400 rounded-full" />
           </div>
@@ -211,9 +208,9 @@ function AboutPage() {
 
           <AnimSection>
             <div className="text-center mb-16">
-              <span className="text-sm font-bold tracking-widest uppercase" style={{ color: "var(--secondary-color)" }}>{t('about.story_label')}</span>
+              <span className="text-sm font-bold tracking-widest uppercase" style={{ color: "var(--secondary-color)" }}>Notre Histoire</span>
               <h2 className="text-4xl sm:text-5xl font-black mt-2 text-gray-800" style={{ fontFamily: "'Georgia', serif" }}>
-                {t('about.story_title_1')}<span style={{ color: "var(--primary-color)" }}>{t('about.story_title_2')}</span>
+                Une passion <span style={{ color: "var(--primary-color)" }}>ancestrale</span>
               </h2>
               <div className="w-16 h-1 mx-auto mt-4 rounded-full" style={{ background: "var(--secondary-color)" }} />
             </div>
@@ -223,30 +220,35 @@ function AboutPage() {
             <AnimSection variants={fadeLeft}>
               <div className="space-y-6 text-gray-700 leading-relaxed">
                 <p className="text-xl font-medium" style={{ color: "var(--primary-color)" }}>
-                  {t('about.story_p1')}
+                  Habibah, c'est avant tout une histoire de famille, de transmission et d'amour.
                 </p>
                 <p>
-                  {t('about.story_p2')}
+                  Dans les cuisines tunisiennes, le Zrir et la Bsissa occupent une place sacrée.
+                  Ces préparations, transmises de mère en fille depuis des siècles, sont bien plus que
+                  de simples aliments — ce sont des rituels, des gestes d'amour, des remèdes naturels.
                 </p>
                 <p>
-                  {t('about.story_p3')}
+                  Notre fondatrice a grandi en regardant sa grand-mère préparer le Zrir pour les grandes occasions.
+                  L'odeur du sésame grillé, le parfum du miel, la chaleur des épices... Ces souvenirs
+                  ont forgé une conviction profonde : ces trésors méritent d'être partagés avec le monde.
                 </p>
                 <p>
-                  {t('about.story_p4')}
-                  <strong style={{ color: "var(--primary-color)" }}>{t('about.story_p5')}</strong>
+                  Aujourd'hui, Habibah perpétue cette tradition avec une exigence absolue sur la qualité
+                  des ingrédients et le respect des méthodes artisanales authentiques.
+                  <strong style={{ color: "var(--primary-color)" }}> Chaque pot est une promesse.</strong>
                 </p>
               </div>
             </AnimSection>
 
             <AnimSection variants={fadeRight}>
               {/* Timeline */}
-              <div className="relative pl-8 rtl:pr-8 rtl:pl-0">
-                <div className="absolute left-3 rtl:left-auto rtl:right-3 top-0 bottom-0 w-0.5" style={{ background: "var(--secondary-color)", opacity: 0.3 }} />
+              <div className="relative pl-8">
+                <div className="absolute left-3 top-0 bottom-0 w-0.5" style={{ background: "var(--secondary-color)", opacity: 0.3 }} />
                 {[
-                  { annee: t('about.timeline_1_year'), titre: t('about.timeline_1_title'), desc: t('about.timeline_1_desc') },
-                  { annee: t('about.timeline_2_year'), titre: t('about.timeline_2_title'), desc: t('about.timeline_2_desc') },
-                  { annee: t('about.timeline_3_year'), titre: t('about.timeline_3_title'), desc: t('about.timeline_3_desc') },
-                  { annee: t('about.timeline_4_year'), titre: t('about.timeline_4_title'), desc: t('about.timeline_4_desc') },
+                  { annee: "Origines", titre: "Les recettes ancestrales", desc: "Des générations de femmes tunisiennes préparent Zrir et Bsissa selon des traditions millénaires." },
+                  { annee: "La passion", titre: "Un héritage familial", desc: "Notre fondatrice grandit en transmettant ces saveurs de génération en génération, gardienne d'un patrimoine culinaire unique." },
+                  { annee: "Aujourd'hui", titre: "Habibah naît", desc: "La marque est créée pour partager ces trésors avec authenticité et amour, sans compromis sur la qualité." },
+                  { annee: "Toujours", titre: "100% Naturel", desc: "Un engagement indéfectible : aucun additif, aucun conservateur, seulement les ingrédients que la nature offre." },
                 ].map(({ annee, titre, desc }, i) => (
                   <motion.div
                     key={i}
@@ -256,7 +258,7 @@ function AboutPage() {
                     transition={{ delay: i * 0.15 }}
                     className="relative mb-10 last:mb-0"
                   >
-                    <div className="absolute -left-8 rtl:left-auto rtl:-right-8 top-1 w-5 h-5 rounded-full border-4 border-white shadow"
+                    <div className="absolute -left-8 top-1 w-5 h-5 rounded-full border-4 border-white shadow"
                       style={{ background: "var(--secondary-color)" }} />
                     <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "var(--secondary-color)" }}>{annee}</span>
                     <h3 className="text-lg font-bold text-gray-800 mt-1 mb-2">{titre}</h3>
@@ -275,9 +277,9 @@ function AboutPage() {
 
           <AnimSection>
             <div className="text-center mb-16">
-              <span className="text-sm font-bold tracking-widest uppercase" style={{ color: "var(--secondary-color)" }}>{t('about.products_label')}</span>
+              <span className="text-sm font-bold tracking-widest uppercase" style={{ color: "var(--secondary-color)" }}>Ce que nous faisons</span>
               <h2 className="text-4xl sm:text-5xl font-black mt-2 text-gray-800" style={{ fontFamily: "'Georgia', serif" }}>
-                {t('about.products_title_1')}<span style={{ color: "var(--secondary-color)" }}>{t('about.products_title_2')}</span>
+                Deux trésors <span style={{ color: "var(--secondary-color)" }}>tunisiens</span>
               </h2>
               <div className="w-16 h-1 mx-auto mt-4 rounded-full" style={{ background: "var(--primary-color)" }} />
             </div>
@@ -296,16 +298,12 @@ function AboutPage() {
               >
                 {/* Header */}
                 <div className="flex items-center gap-4">
-                  {p.image ? (
-                    <img src={p.image} alt={p.nom} className="w-14 h-14 rounded-2xl object-cover shadow-lg border border-gray-100" />
-                  ) : (
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${p.couleur} flex items-center justify-center text-white shadow-lg`}>
-                      {p.icone}
-                    </div>
-                  )}
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${p.couleur} flex items-center justify-center text-white shadow-lg`}>
+                    {p.icone}
+                  </div>
                   <div>
                     <h3 className="text-2xl font-black text-gray-800" style={{ fontFamily: "'Georgia', serif" }}>{p.nom}</h3>
-                    <span className={`text-xs font-bold px-2 py-1 rounded-full inline-block mt-1 ${p.tag}`}>{p.tagText}</span>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${p.tag}`}>Artisanal · Tunisie</span>
                   </div>
                 </div>
 
@@ -314,7 +312,7 @@ function AboutPage() {
 
                 {/* Variétés */}
                 <div>
-                  <p className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-3">{t('about.prod_var_title')}</p>
+                  <p className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-3">Nos variétés</p>
                   <div className="flex flex-wrap gap-2">
                     {p.varietes.map(v => (
                       <span key={v} className={`px-3 py-1.5 rounded-full text-sm font-medium border ${p.border} ${p.tag}`}>{v}</span>
@@ -327,7 +325,7 @@ function AboutPage() {
                   onClick={() => navigate("/produit")}
                   className={`self-start inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r ${p.couleur} hover:shadow-lg transition-all duration-200 hover:scale-105`}
                 >
-                  {t('about.order_btn')} <FaArrowRight size={13} className="rtl:rotate-180" />
+                  Commander <FaArrowRight size={13} />
                 </button>
               </motion.div>
             ))}
@@ -341,9 +339,9 @@ function AboutPage() {
 
           <AnimSection>
             <div className="text-center mb-16">
-              <span className="text-sm font-bold tracking-widest uppercase" style={{ color: "var(--secondary-color)" }}>{t('about.values_label')}</span>
+              <span className="text-sm font-bold tracking-widest uppercase" style={{ color: "var(--secondary-color)" }}>Ce qui nous guide</span>
               <h2 className="text-4xl sm:text-5xl font-black mt-2 text-gray-800" style={{ fontFamily: "'Georgia', serif" }}>
-                {t('about.values_title_1')}<span style={{ color: "var(--primary-color)" }}>{t('about.values_title_2')}</span>
+                Nos <span style={{ color: "var(--primary-color)" }}>engagements</span>
               </h2>
               <div className="w-16 h-1 mx-auto mt-4 rounded-full" style={{ background: "var(--secondary-color)" }} />
             </div>
@@ -382,10 +380,10 @@ function AboutPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-white text-center">
             {[
-              { nb: "100%", label: t('about.stat_1_lbl') },
-              { nb: "6+",   label: t('about.stat_2_lbl') },
-              { nb: "4+",   label: t('about.stat_3_lbl') },
-              { nb: "♾",   label: t('about.stat_4_lbl') },
+              { nb: "100%", label: "Ingrédients naturels" },
+              { nb: "6+",   label: "Variétés de Zrir" },
+              { nb: "4+",   label: "Variétés de Bsissa" },
+              { nb: "♾",   label: "Recette ancestrale" },
             ].map(({ nb, label }, i) => (
               <motion.div
                 key={label}
@@ -409,10 +407,10 @@ function AboutPage() {
           <AnimSection>
             <FaHeart className="mx-auto mb-6 text-4xl" style={{ color: "var(--secondary-color)" }} />
             <h2 className="text-4xl sm:text-5xl font-black text-gray-800 mb-6" style={{ fontFamily: "'Georgia', serif" }}>
-              {t('about.cta_title_1')}<span style={{ color: "var(--primary-color)" }}>{t('about.cta_title_2')}</span>{t('about.cta_title_3')}
+              Prêt à goûter <span style={{ color: "var(--primary-color)" }}>l'authentique</span> ?
             </h2>
             <p className="text-xl text-gray-600 mb-10 leading-relaxed">
-              {t('about.cta_desc')}
+              Commandez dès maintenant et laissez-vous transporter au cœur de la Tunisie à travers chaque cuillère.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <motion.button
@@ -422,17 +420,17 @@ function AboutPage() {
                 className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-2xl font-bold text-white shadow-xl text-lg transition-all"
                 style={{ background: "linear-gradient(135deg, var(--primary-color), var(--secondary-color))", boxShadow: "0 10px 30px -8px var(--primary-color)" }}
               >
-                {t('about.cta_btn_1')} <FaArrowRight className="rtl:rotate-180" />
+                Voir nos produits <FaArrowRight />
               </motion.button>
               <motion.a
                 whileHover={{ scale: 1.05 }}
-                href="https://wa.me/21600000000"
+                href="https://wa.me/21625257099"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-2xl font-bold border-2 text-lg transition-all"
                 style={{ borderColor: "var(--primary-color)", color: "var(--primary-color)" }}
               >
-                <FaWhatsapp /> {t('about.cta_btn_2')}
+                <FaWhatsapp /> Commander via WhatsApp
               </motion.a>
             </div>
           </AnimSection>

@@ -336,6 +336,28 @@ function Navbar() {
 
               {/* Séparateur */}
               <div className="border-t border-gray-100 pt-3 mt-3 space-y-1">
+                {/* Langue mobile */}
+                <div className="flex justify-between items-center px-4 py-3 bg-gray-50 rounded-xl mb-2">
+                  <div className="flex items-center gap-3 text-gray-600">
+                    <FontAwesomeIcon icon={faGlobe} className="text-sm" />
+                    <span className="text-sm font-semibold">Langue / اللغة</span>
+                  </div>
+                  <div className="flex bg-white rounded-lg p-1 border border-gray-200 shadow-sm">
+                    <button 
+                      onClick={() => { i18n.changeLanguage('fr'); setMobileOpen(false); }} 
+                      className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${i18n.language === 'fr' || !i18n.language?.startsWith('ar') ? 'bg-[var(--primary-color)] text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+                    >
+                      FR
+                    </button>
+                    <button 
+                      onClick={() => { i18n.changeLanguage('ar'); setMobileOpen(false); }} 
+                      className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${i18n.language?.startsWith('ar') ? 'bg-[var(--primary-color)] text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+                    >
+                      AR
+                    </button>
+                  </div>
+                </div>
+
                 {user ? (
                   <>
                     {/* Info user mobile */}

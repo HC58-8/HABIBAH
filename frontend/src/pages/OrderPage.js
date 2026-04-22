@@ -180,8 +180,7 @@ function OrderPage() {
           </p>
           {user && (
             <div className="text-xs text-gray-400 mb-8">
-              <p>Connecté en tant que : {user.email}</p>
-              <p className="font-mono mt-1">ID Utilisateur: {userId}</p>
+              <p>{t("cart.logged_as")} : {user.email}</p>
             </div>
           )}
           <button
@@ -379,16 +378,11 @@ function OrderPage() {
                   name="name" 
                   value={form.name} 
                   onChange={handleChange}
-                  placeholder="Ex: Ahmed Ben Ali"
+                  placeholder={t("account.firstname") + " " + t("account.lastname")}
                   className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] transition outline-none ${errors.name ? "border-red-400" : "border-gray-200"}`}
                   disabled={loadingUser}
                 />
                 {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
-                {form.name && user && (
-                  <p className="mt-1 text-xs text-green-600">
-                    ✓ Pré-rempli depuis votre profil
-                  </p>
-                )}
               </div>
 
               {/* Téléphone */}
@@ -402,13 +396,10 @@ function OrderPage() {
                   name="phone" 
                   value={form.phone} 
                   onChange={handleChange}
-                  placeholder="Ex: +216 XX XXX XXX"
+                  placeholder="Ex: +216 ..."
                   className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] transition outline-none ${errors.phone ? "border-red-400" : "border-gray-200"}`}
                 />
                 {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
-                {!form.phone && user && (
-                  <p className="mt-1 text-xs text-gray-400">Veuillez saisir votre numéro</p>
-                )}
               </div>
 
               {/* Adresse */}
@@ -422,13 +413,10 @@ function OrderPage() {
                   value={form.address} 
                   onChange={handleChange}
                   rows="3"
-                  placeholder="Rue, ville, code postal..."
+                  placeholder={t("order.address")}
                   className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] transition outline-none resize-none ${errors.address ? "border-red-400" : "border-gray-200"}`}
                 />
                 {errors.address && <p className="mt-1 text-sm text-red-500">{errors.address}</p>}
-                {!form.address && user && (
-                  <p className="mt-1 text-xs text-gray-400">Veuillez saisir votre adresse</p>
-                )}
               </div>
 
               {/* Note */}

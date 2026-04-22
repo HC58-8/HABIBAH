@@ -69,22 +69,10 @@ function CartPage() {
     setIsLoggedIn(!!token);
   };
 
-  console.log("🛒 Rendu CartPage - isLoggedIn:", isLoggedIn, "Email:", userEmail);
-
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-[#FCFAED] pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4">
-          
-          {/* Bouton de test localStorage (à retirer après débogage) */}
-          <div className="flex justify-end mb-4 gap-2">
-            <button
-              onClick={testLocalStorage}
-              className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-            >
-             
-            </button>
-          </div>
           
           <PageHeader title={t('cart.title')} subtitle={t('cart.subtitle')} />
           
@@ -92,36 +80,7 @@ function CartPage() {
             <FaShoppingCart className="mx-auto text-gray-300 mb-4" size={64} />
             <p className="text-xl text-gray-500 mb-6">{t('cart.empty')}</p>
             
-            {/* Message si connecté */}
-            {isLoggedIn && (
-              <div className="mb-4 text-green-600">
-                ✅ {t('cart.logged_as')} {userEmail}
-              </div>
-            )}
-            
-            {/* Bouton Mes commandes (si connecté) */}
-            {isLoggedIn && (
-              <div className="mt-6">
-                <button
-                  onClick={() => navigate("/my-orders")}
-                   className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary-color)] text-white rounded-xl hover:bg-[var(--secondary-color)] transition font-semibold shadow-md"
-                >
-                  <FaHistory /> {t('cart.my_orders')}
-                </button>
-              </div>
-            )}
-            
-            {/* Bouton Se connecter (si non connecté) */}
-            {!isLoggedIn && (
-              <div className="mt-6">
-                <button
-                  onClick={() => navigate("/account")}
-                   className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-semibold shadow-md"
-                >
-                  <FaSignInAlt /> {t('cart.login')}
-                </button>
-              </div>
-            )}
+
             
             <div className="mt-4">
               <button
@@ -141,48 +100,21 @@ function CartPage() {
     <div className="min-h-screen bg-[#FCFAED] pt-24 pb-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-       
-
         <PageHeader 
           title={t('cart.title')} 
           subtitle={t('cart.subtitle_plural', { count: totalItems })} 
         />
 
-        {/* Message utilisateur */}
-        {isLoggedIn && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-green-700 flex justify-between items-center">
-            <span>✅ {t('cart.logged_as')} {userEmail}</span>
-            <button
-              onClick={() => navigate("/my-orders")}
-               className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
-            >
-              {t('cart.my_orders')}
-            </button>
-          </div>
-        )}
 
-        {!isLoggedIn && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-blue-700 flex justify-between items-center">
-            <span>🔐 {t('cart.not_logged_in')}</span>
-            <button
-              onClick={() => navigate("/account")}
-               className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
-            >
-              {t('cart.login')}
-            </button>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* Liste des articles */}
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map(item => (
               <div
                 key={item.itemId}
                 className="bg-white rounded-2xl shadow-md p-4 flex gap-4 items-center border-2 border-transparent hover:border-[var(--secondary-color)] transition"
               >
-                {/* Image */}
                 <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
                   {item.image ? (
                     <img
@@ -197,7 +129,6 @@ function CartPage() {
                   )}
                 </div>
 
-                {/* Infos */}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-[var(--primary-color)] truncate">{item.name}</h3>
                   <p className="text-xs text-gray-500 mb-1">{item.type} · {item.size}</p>
@@ -206,7 +137,6 @@ function CartPage() {
                   </p>
                 </div>
 
-                {/* Quantité */}
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => updateQuantity(item.itemId, item.quantity - 1)}
@@ -223,18 +153,16 @@ function CartPage() {
                   </button>
                 </div>
 
-                {/* Supprimer */}
                 <button
                   onClick={() => removeFromCart(item.itemId)}
                   className="text-red-400 hover:text-red-600 transition ml-2 shrink-0"
-                  aria-label="Supprimer"
+                  aria-label={t("cart.remove")}
                 >
                   <FaTrash size={16} />
                 </button>
               </div>
             ))}
 
-            {/* Vider le panier */}
              <button
               onClick={clearCart}
               className="text-sm text-red-400 hover:text-red-600 transition flex items-center gap-2"
@@ -243,7 +171,6 @@ function CartPage() {
             </button>
           </div>
 
-          {/* Récapitulatif */}
            <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-[var(--primary-color)] sticky top-24">
               <h2 className="text-xl font-bold text-[var(--primary-color)] mb-4">{t('cart.summary')}</h2>

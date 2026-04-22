@@ -11,8 +11,13 @@ router.post("/verify-otp",  userController.verifyOtp);  // Étape 2 : vérifier 
 router.post("/resend-otp",  userController.resendOtp);  // Renvoi de code
 
 // Connexion
-router.post("/login",        userController.login);
-router.post("/google-login", userController.googleLogin);
+router.post("/login",            userController.login);
+router.post("/verify-login-otp", userController.verifyLoginOtp);
+router.post("/google-login",     userController.googleLogin);
+
+// Mot de passe oublié
+router.post("/forgot-password", userController.sendResetOtp);
+router.post("/reset-password",  userController.resetPassword);
 
 // ==================== ROUTES PROTÉGÉES ====================
 router.get("/profile",  authMiddleware, userController.getProfile);

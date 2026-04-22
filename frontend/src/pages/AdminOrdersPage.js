@@ -1,6 +1,6 @@
-// src/pages/AdminOrdersPage.js
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import {
   FaShoppingBag, FaSpinner, FaEye, FaCheck, FaTimes,
@@ -20,32 +20,32 @@ const PRODUCT_API = API.PRODUCTS;
 // ✅ FIX: statusConfig déplacé HORS du composant → plus de dépendance manquante dans useCallback
 const statusConfig = {
   pending: {
-    label: "En attente",
+    labelKey: "admin.status.pending",
     color: "bg-yellow-100 text-yellow-800 border-yellow-300",
     icon: <MdPending className="text-yellow-600" />
   },
   confirmed: {
-    label: "Confirmée",
+    labelKey: "admin.status.confirmed",
     color: "bg-blue-100 text-blue-800 border-blue-300",
     icon: <GiConfirmed className="text-blue-600" />
   },
   preparing: {
-    label: "En préparation",
+    labelKey: "admin.status.preparing",
     color: "bg-purple-100 text-purple-800 border-purple-300",
     icon: <FaBoxOpen className="text-purple-600" />
   },
   shipped: {
-    label: "Expédiée",
+    labelKey: "admin.status.shipped",
     color: "bg-indigo-100 text-indigo-800 border-indigo-300",
     icon: <FaTruck className="text-indigo-600" />
   },
   delivered: {
-    label: "Livrée",
+    labelKey: "admin.status.delivered",
     color: "bg-green-100 text-green-800 border-green-300",
     icon: <FaCheck className="text-green-600" />
   },
   cancelled: {
-    label: "Annulée",
+    labelKey: "admin.status.cancelled",
     color: "bg-red-100 text-red-800 border-red-300",
     icon: <FaTimes className="text-red-600" />
   }
@@ -53,6 +53,7 @@ const statusConfig = {
 
 function AdminOrdersPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
@@ -88,22 +89,13 @@ function AdminOrdersPage() {
 
     setLoadingProductDetails(true);
     try {
-      const res = await axios.get(`${PRODUCT_API}/${productId}`, {
-        validateStatus: (status) => (status >= 200 && status < 300) || status === 404
-      });
-
-      if (res.status === 404) {
-        const deletedProduct = { name: "Produit supprimé", deleted: true, id: productId };
-        setProductDetails(prev => ({ ...prev, [productId]: deletedProduct }));
-        setSelectedProduct(deletedProduct);
-      } else {
-        setProductDetails(prev => ({ ...prev, [productId]: res.data }));
-        setSelectedProduct(res.data);
-      }
+      const res = await axios.get(`${PRODUCT_API}/${productId}`);
+      setProductDetails(prev => ({ ...prev, [productId]: res.data }));
+      setSelectedProduct(res.data);
       setShowProductDetails(true);
     } catch (error) {
       console.error("❌ Erreur chargement détails produit:", error);
-      alert("Ce produit semble avoir été supprimé de la base de données.");
+      alert("Erreur lors du chargement des détails du produit");
     } finally {
       setLoadingProductDetails(false);
     }
@@ -175,7 +167,7 @@ function AdminOrdersPage() {
     ordersData.forEach(order => {
       if (statusConfig[order.status]) newStats[order.status]++;
       if (order.status === 'delivered' || order.status === 'confirmed') {
-        newStats.revenue += parseFloat(order.total_amount) || 0;
+        newStats.revenue += parseFloat(order.total) || 0;
       }
     });
     setStats(newStats);
@@ -228,9 +220,9 @@ function AdminOrdersPage() {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(order =>
-        order.customer_name?.toLowerCase().includes(term) ||
-        order.customer_phone?.includes(term) ||
-        order.customer_email?.toLowerCase().includes(term) ||
+        order.customer?.name?.toLowerCase().includes(term) ||
+        order.customer?.phone?.includes(term) ||
+        order.customer?.email?.toLowerCase().includes(term) ||
         order.id?.toString().includes(term)
       );
     }
@@ -263,7 +255,7 @@ function AdminOrdersPage() {
 
   // ================= METTRE À JOUR STATUT =================
   const handleStatusUpdate = async (orderId, newStatus) => {
-    if (!window.confirm(`Changer le statut en "${statusConfig[newStatus].label}" ?`)) return;
+    if (!window.confirm(`${t("admin.change_status")} "${t(statusConfig[newStatus].labelKey)}"?`)) return;
     try {
       const token = localStorage.getItem("token");
       await axios.put(`${ORDER_API}/${orderId}/status`,
@@ -322,8 +314,8 @@ function AdminOrdersPage() {
   const exportToCSV = () => {
     const headers = ['ID', 'Client', 'Téléphone', 'Email', 'Adresse', 'Total', 'Statut', 'Date', 'Note'];
     const csvData = filteredOrders.map(order => [
-      order.id, order.customer_name, order.customer_phone,
-      order.customer_email || '', order.customer_address, order.total_amount,
+      order.id, order.customer?.name, order.customer?.phone,
+      order.customer?.email || '', order.customer?.address, order.total,
       order.status, formatDate(order.created_at), order.note || ''
     ]);
     const csv = [headers, ...csvData].map(row => row.join(',')).join('\n');
@@ -352,38 +344,38 @@ function AdminOrdersPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <PageHeader
-          title="Gestion des commandes"
-          subtitle="Administration - Toutes les commandes"
+          title={t("admin.orders_title")}
+          subtitle={t("admin.orders_subtitle")}
         />
 
         {/* Statistiques */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
           <div className="bg-white rounded-xl shadow p-4 border-2 border-gray-200">
-            <p className="text-sm text-gray-500">Total</p>
+            <p className="text-sm text-gray-500">{t("admin.stats_total")}</p>
             <p className="text-2xl font-bold text-[var(--primary-color)]">{stats.total}</p>
           </div>
           <div className="bg-yellow-50 rounded-xl shadow p-4 border-2 border-yellow-200">
-            <p className="text-sm text-yellow-700">En attente</p>
+            <p className="text-sm text-yellow-700">{t("admin.stats_pending")}</p>
             <p className="text-2xl font-bold text-yellow-800">{stats.pending}</p>
           </div>
           <div className="bg-blue-50 rounded-xl shadow p-4 border-2 border-blue-200">
-            <p className="text-sm text-blue-700">Confirmées</p>
+            <p className="text-sm text-blue-700">{t("admin.stats_confirmed")}</p>
             <p className="text-2xl font-bold text-blue-800">{stats.confirmed}</p>
           </div>
           <div className="bg-purple-50 rounded-xl shadow p-4 border-2 border-purple-200">
-            <p className="text-sm text-purple-700">Préparation</p>
+            <p className="text-sm text-purple-700">{t("admin.stats_preparing")}</p>
             <p className="text-2xl font-bold text-purple-800">{stats.preparing}</p>
           </div>
           <div className="bg-indigo-50 rounded-xl shadow p-4 border-2 border-indigo-200">
-            <p className="text-sm text-indigo-700">Expédiées</p>
+            <p className="text-sm text-indigo-700">{t("admin.stats_shipped")}</p>
             <p className="text-2xl font-bold text-indigo-800">{stats.shipped}</p>
           </div>
           <div className="bg-green-50 rounded-xl shadow p-4 border-2 border-green-200">
-            <p className="text-sm text-green-700">Livrées</p>
+            <p className="text-sm text-green-700">{t("admin.stats_delivered")}</p>
             <p className="text-2xl font-bold text-green-800">{stats.delivered}</p>
           </div>
           <div className="bg-emerald-50 rounded-xl shadow p-4 border-2 border-emerald-200">
-            <p className="text-sm text-emerald-700">CA</p>
+            <p className="text-sm text-emerald-700">{t("admin.stats_revenue")}</p>
             <p className="text-lg font-bold text-emerald-800">{stats.revenue.toFixed(3)} DT</p>
           </div>
         </div>
@@ -395,7 +387,7 @@ function AdminOrdersPage() {
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher par nom, téléphone, email, ID..."
+                placeholder={t("admin.search_orders_placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] transition outline-none"
@@ -407,9 +399,9 @@ function AdminOrdersPage() {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] transition outline-none bg-white"
               >
-                <option value="all">Tous les statuts</option>
+                <option value="all">{t("admin.all_statuses")}</option>
                 {Object.entries(statusConfig).map(([key, config]) => (
-                  <option key={key} value={key}>{config.label}</option>
+                  <option key={key} value={key}>{t(config.labelKey)}</option>
                 ))}
               </select>
               <select
@@ -417,15 +409,15 @@ function AdminOrdersPage() {
                 onChange={(e) => setDateFilter(e.target.value)}
                 className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] transition outline-none bg-white"
               >
-                <option value="all">Toutes les dates</option>
-                <option value="today">Aujourd'hui</option>
-                <option value="week">Cette semaine</option>
-                <option value="month">Ce mois</option>
+                <option value="all">{t("admin.all_dates")}</option>
+                <option value="today">{t("admin.today")}</option>
+                <option value="week">{t("admin.this_week")}</option>
+                <option value="month">{t("admin.this_month")}</option>
               </select>
               <button
                 onClick={exportToCSV}
                 className="px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition flex items-center gap-2"
-                title="Exporter en CSV"
+                title={t("admin.export_csv")}
               >
                 <FaDownload />
               </button>
@@ -436,14 +428,14 @@ function AdminOrdersPage() {
         {/* Liste des commandes */}
         <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-[var(--primary-color)]">
           <h2 className="text-xl font-bold text-[var(--primary-color)] mb-6 flex items-center gap-2">
-            <FaShoppingBag /> Commandes ({filteredOrders.length})
+            <FaShoppingBag /> {t("navbar.order")} ({filteredOrders.length})
             {loadingImages && <FaSpinner className="animate-spin ml-2" />}
           </h2>
 
           {filteredOrders.length === 0 ? (
             <div className="text-center py-12">
               <FaShoppingBag className="mx-auto text-gray-300 mb-4" size={64} />
-              <p className="text-gray-500">Aucune commande trouvée</p>
+              <p className="text-gray-500">{t("admin.no_orders_found")}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -459,7 +451,7 @@ function AdminOrdersPage() {
                       <div>
                         <p className="font-semibold text-gray-800 flex items-center gap-2">
                           <FaUser className="text-[var(--secondary-color)]" />
-                          {order.customer_name}
+                          {order.customer?.name}
                         </p>
                         <p className="text-sm text-gray-500 flex items-center gap-2">
                           <FaCalendarAlt className="text-[var(--secondary-color)]" />
@@ -470,10 +462,10 @@ function AdminOrdersPage() {
                     <div className="flex items-center gap-3">
                       <span className={`px-3 py-1 rounded-full text-sm font-semibold border flex items-center gap-1 ${statusConfig[order.status]?.color}`}>
                         {statusConfig[order.status]?.icon}
-                        {statusConfig[order.status]?.label}
+                        {t(statusConfig[order.status]?.labelKey)}
                       </span>
                       <span className="text-xl font-bold text-[var(--secondary-color)]">
-                        {parseFloat(order.total_amount).toFixed(3)} DT
+                        {parseFloat(order.total).toFixed(3)} DT
                       </span>
                     </div>
                   </div>
@@ -482,17 +474,17 @@ function AdminOrdersPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm">
                     <div className="flex items-center gap-2 text-gray-600">
                       <FaPhone className="text-[var(--secondary-color)]" />
-                      {order.customer_phone}
+                      {order.customer?.phone}
                     </div>
-                    {order.customer_email && (
+                    {order.customer?.email && (
                       <div className="flex items-center gap-2 text-gray-600">
                         <FaEnvelope className="text-[var(--secondary-color)]" />
-                        {order.customer_email}
+                        {order.customer?.email}
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-gray-600">
                       <FaMapMarkerAlt className="text-[var(--secondary-color)]" />
-                      {order.customer_address}
+                      {order.customer?.address}
                     </div>
                   </div>
 
@@ -537,14 +529,14 @@ function AdminOrdersPage() {
                                 {item.size && <span className="text-gray-500">Taille: {item.size}</span>}
                                 <span className="text-gray-500">Qté: {item.quantity}</span>
                                 <span className="font-semibold text-[var(--secondary-color)]">
-                                  {parseFloat(item.unit_price || item.price).toFixed(3)} DT
+                                  {parseFloat(item.price || 0).toFixed(3)} DT
                                 </span>
                               </div>
                             </div>
                             <div className="text-right">
                               <p className="text-sm text-gray-500">Sous-total</p>
                               <p className="font-bold text-[var(--primary-color)]">
-                                {parseFloat(item.subtotal).toFixed(3)} DT
+                                {parseFloat((item.price || 0) * (item.quantity || 1)).toFixed(3)} DT
                               </p>
                             </div>
                           </div>
@@ -560,22 +552,22 @@ function AdminOrdersPage() {
                       value=""
                       className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-[var(--secondary-color)] transition outline-none bg-white"
                     >
-                      <option value="" disabled>Changer statut</option>
+                      <option value="" disabled>{t("admin.change_status")}</option>
                       {Object.entries(statusConfig).map(([key, config]) => (
-                        <option key={key} value={key}>{config.label}</option>
+                        <option key={key} value={key}>{t(config.labelKey)}</option>
                       ))}
                     </select>
                     <button
                       onClick={() => { setSelectedOrder(order); setShowDetails(true); }}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm"
                     >
-                      <FaEye /> Détails commande
+                      <FaEye /> {t("admin.order_details")}
                     </button>
                     <button
                       onClick={() => handleDeleteOrder(order.id)}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2 text-sm"
                     >
-                      <FaTrash /> Supprimer
+                      <FaTrash /> {t("common.delete")}
                     </button>
                   </div>
                 </div>
@@ -592,7 +584,7 @@ function AdminOrdersPage() {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-bold text-[var(--primary-color)]">
-                  Détails commande #{selectedOrder.id}
+                  {t("admin.order_details")} #{selectedOrder.id}
                 </h3>
                 <button onClick={() => setShowDetails(false)} className="text-gray-500 hover:text-gray-700">
                   <FaTimes size={24} />
@@ -601,11 +593,11 @@ function AdminOrdersPage() {
 
               {/* Statut actuel */}
               <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm text-gray-500 mb-1">Statut actuel</p>
+                <p className="text-sm text-gray-500 mb-1">{t("admin.status_label") || "Statut actuel"}</p>
                 <div className="flex items-center gap-2">
                   <span className={`px-4 py-2 rounded-full font-semibold flex items-center gap-2 ${statusConfig[selectedOrder.status]?.color}`}>
                     {statusConfig[selectedOrder.status]?.icon}
-                    {statusConfig[selectedOrder.status]?.label}
+                    {t(statusConfig[selectedOrder.status]?.labelKey)}
                   </span>
                   <span className="text-gray-400">|</span>
                   <span className="text-sm text-gray-500">{formatDate(selectedOrder.created_at)}</span>
@@ -616,39 +608,39 @@ function AdminOrdersPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="bg-[#FCFAED] p-4 rounded-xl">
                   <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2">
-                    <FaUser /> Client
+                    <FaUser /> {t("admin.customer")}
                   </h4>
-                  <p className="mb-2"><span className="font-medium">Nom:</span> {selectedOrder.customer_name}</p>
-                  <p className="mb-2"><span className="font-medium">Téléphone:</span> {selectedOrder.customer_phone}</p>
-                  {selectedOrder.customer_email && (
-                    <p className="mb-2"><span className="font-medium">Email:</span> {selectedOrder.customer_email}</p>
+                  <p className="mb-2"><span className="font-medium">{t("order.full_name")}:</span> {selectedOrder.customer?.name}</p>
+                  <p className="mb-2"><span className="font-medium">{t("order.phone")}:</span> {selectedOrder.customer?.phone}</p>
+                  {selectedOrder.customer?.email && (
+                    <p className="mb-2"><span className="font-medium">{t("contact.form_email")}:</span> {selectedOrder.customer?.email}</p>
                   )}
                 </div>
                 <div className="bg-[#FCFAED] p-4 rounded-xl">
                   <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2">
-                    <FaMapMarkerAlt /> Livraison
+                    <FaMapMarkerAlt /> {t("admin.delivery")}
                   </h4>
-                  <p className="mb-2"><span className="font-medium">Adresse:</span> {selectedOrder.customer_address}</p>
+                  <p className="mb-2"><span className="font-medium">{t("order.address")}:</span> {selectedOrder.customer?.address}</p>
                   {selectedOrder.note && (
-                    <p className="mb-2"><span className="font-medium">Note:</span> {selectedOrder.note}</p>
+                    <p className="mb-2"><span className="font-medium">{t("order.note")}:</span> {selectedOrder.note}</p>
                   )}
                 </div>
               </div>
 
               {/* Produits commandés — cliquables avec lien retour */}
               <div className="mb-6">
-                <h4 className="font-semibold text-[var(--primary-color)] mb-3">Produits commandés</h4>
+                <h4 className="font-semibold text-[var(--primary-color)] mb-3">{t("admin.ordered_products")}</h4>
                 <div className="bg-gray-50 rounded-xl overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-[var(--primary-color)] text-white">
                       <tr>
-                        <th className="px-4 py-3 text-left">Image</th>
-                        <th className="px-4 py-3 text-left">Produit</th>
-                        <th className="px-4 py-3 text-left">Taille</th>
-                        <th className="px-4 py-3 text-right">Prix unit.</th>
+                        <th className="px-4 py-3 text-left">{t("products.images")}</th>
+                        <th className="px-4 py-3 text-left">{t("products.name")}</th>
+                        <th className="px-4 py-3 text-left">{t("products.variants")}</th>
+                        <th className="px-4 py-3 text-right">{t("navbar.price")}</th>
                         <th className="px-4 py-3 text-right">Qté</th>
-                        <th className="px-4 py-3 text-right">Total</th>
-                        <th className="px-4 py-3 text-center">Détails</th>
+                        <th className="px-4 py-3 text-right">{t("cart.total")}</th>
+                        <th className="px-4 py-3 text-center">{t("admin.actions")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -675,10 +667,10 @@ function AdminOrdersPage() {
                             </td>
                             <td className="px-4 py-3 font-medium">{item.productname || item.productName}</td>
                             <td className="px-4 py-3">{item.product_size || item.size || '-'}</td>
-                            <td className="px-4 py-3 text-right">{parseFloat(item.unit_price || item.price).toFixed(3)} DT</td>
+                            <td className="px-4 py-3 text-right">{parseFloat(item.price || 0).toFixed(3)} DT</td>
                             <td className="px-4 py-3 text-right">{item.quantity}</td>
                             <td className="px-4 py-3 text-right font-semibold text-[var(--secondary-color)]">
-                              {parseFloat(item.subtotal).toFixed(3)} DT
+                              {parseFloat((item.price || 0) * (item.quantity || 1)).toFixed(3)} DT
                             </td>
                             <td className="px-4 py-3 text-center">
                               {/* ✅ NEW: on ferme showDetails et on ouvre le produit avec lien retour */}
@@ -688,9 +680,10 @@ function AdminOrdersPage() {
                                   loadProductDetails(productId, selectedOrder);
                                 }}
                                 className="inline-flex items-center gap-1 text-sm px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition font-medium border border-blue-200"
-                                title="Voir détails produit"
+                                className="inline-flex items-center gap-1 text-sm px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition font-medium border border-blue-200"
+                                title={t("admin.view")}
                               >
-                                <FaEye size={13} /> Voir
+                                <FaEye size={13} /> {t("admin.view")}
                               </button>
                             </td>
                           </tr>
@@ -701,7 +694,7 @@ function AdminOrdersPage() {
                       <tr>
                         <td colSpan="6" className="px-4 py-3 text-right">Total</td>
                         <td className="px-4 py-3 text-right text-[var(--secondary-color)]">
-                          {parseFloat(selectedOrder.total_amount).toFixed(3)} DT
+                          {parseFloat(selectedOrder.total).toFixed(3)} DT
                         </td>
                       </tr>
                     </tfoot>
@@ -714,13 +707,13 @@ function AdminOrdersPage() {
                   onClick={() => setShowDetails(false)}
                   className="px-6 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition"
                 >
-                  Fermer
+                  {t("admin.close")}
                 </button>
                 <button
                   onClick={() => window.print()}
                   className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition flex items-center gap-2"
                 >
-                  <FaPrint /> Imprimer
+                  <FaPrint /> {t("admin.print")}
                 </button>
               </div>
             </div>
@@ -748,7 +741,7 @@ function AdminOrdersPage() {
                     </button>
                   )}
                   <h3 className="text-2xl font-bold text-[var(--primary-color)]">
-                    Détails du produit
+                    {t("admin.product_details")}
                   </h3>
                 </div>
                 <button onClick={() => setShowProductDetails(false)} className="text-gray-500 hover:text-gray-700">
@@ -768,29 +761,29 @@ function AdminOrdersPage() {
                   {productSourceOrder && (
                     <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
                       <p className="text-sm font-semibold text-blue-700 mb-3 flex items-center gap-2">
-                        <FaShoppingBag /> Commande associée #{productSourceOrder.id}
+                        <FaShoppingBag /> {t("admin.associated_order")} #{productSourceOrder.id}
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div className="space-y-1">
                           <p className="flex items-center gap-2 text-gray-700">
                             <FaUser className="text-blue-500" />
-                            <span className="font-medium">Client :</span> {productSourceOrder.customer_name}
+                            <span className="font-medium">Client :</span> {productSourceOrder.customer?.name}
                           </p>
                           <p className="flex items-center gap-2 text-gray-700">
                             <FaPhone className="text-blue-500" />
-                            <span className="font-medium">Tél :</span> {productSourceOrder.customer_phone}
+                            <span className="font-medium">Tél :</span> {productSourceOrder.customer?.phone}
                           </p>
-                          {productSourceOrder.customer_email && (
+                          {productSourceOrder.customer?.email && (
                             <p className="flex items-center gap-2 text-gray-700">
                               <FaEnvelope className="text-blue-500" />
-                              <span className="font-medium">Email :</span> {productSourceOrder.customer_email}
+                              <span className="font-medium">Email :</span> {productSourceOrder.customer?.email}
                             </p>
                           )}
                         </div>
                         <div className="space-y-1">
                           <p className="flex items-center gap-2 text-gray-700">
                             <FaMapMarkerAlt className="text-blue-500" />
-                            <span className="font-medium">Adresse :</span> {productSourceOrder.customer_address}
+                            <span className="font-medium">Adresse :</span> {productSourceOrder.customer?.address}
                           </p>
                           <p className="flex items-center gap-2 text-gray-700">
                             <FaCalendarAlt className="text-blue-500" />
@@ -802,7 +795,7 @@ function AdminOrdersPage() {
                               {statusConfig[productSourceOrder.status]?.label}
                             </span>
                             <span className="font-bold text-[var(--secondary-color)]">
-                              {parseFloat(productSourceOrder.total_amount).toFixed(3)} DT
+                              {parseFloat(productSourceOrder.total).toFixed(3)} DT
                             </span>
                           </div>
                         </div>
@@ -854,7 +847,7 @@ function AdminOrdersPage() {
                                   <p className="text-xs text-gray-500">
                                     Qté: {item.quantity}
                                     {item.size ? ` · Taille: ${item.size}` : ''}
-                                    {' · '}{parseFloat(item.subtotal).toFixed(3)} DT
+                                    {' · '}{parseFloat((item.price || 0) * (item.quantity || 1)).toFixed(3)} DT
                                   </p>
                                 </div>
                                 {!isCurrent && (
@@ -868,95 +861,130 @@ function AdminOrdersPage() {
                     </div>
                   )}
 
-                  {/* Images du produit */}
-                  {selectedProduct.images && selectedProduct.images.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2">
-                        <FaImage /> Images
-                      </h4>
-                      <div className="grid grid-cols-3 gap-4">
-                        {selectedProduct.images.map((img, idx) => (
-                          <div key={idx} className="relative">
+                  {/* Images du produit & Infos - UI Pro */}
+                  <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    
+                    {/* Colonne Gauche: Images Galleria */}
+                    <div className="space-y-4">
+                      {selectedProduct.images && selectedProduct.images.length > 0 ? (
+                        <>
+                          <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-gray-50 relative group">
                             <img
-                              src={getImageUrl(img)}
-                              alt={`${selectedProduct.name} - ${idx + 1}`}
-                              className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
+                              src={getImageUrl(selectedProduct.id, selectedProduct.images[selectedProduct.main_image_index || 0])}
+                              alt={selectedProduct.name}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                               onError={(e) => { e.target.style.display = 'none'; }}
                             />
-                            {idx === selectedProduct.main_image_index && (
-                              <span className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                Principale
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Informations générales + Variantes */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-[#FCFAED] p-4 rounded-xl">
-                      <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2">
-                        <FaTag /> Informations générales
-                      </h4>
-                      <p className="mb-2"><span className="font-medium">Nom:</span> {selectedProduct.name}</p>
-                      <p className="mb-2"><span className="font-medium">Type:</span> {selectedProduct.type || 'Non spécifié'}</p>
-                      <p className="mb-2"><span className="font-medium">Description:</span> {selectedProduct.description || 'Aucune description'}</p>
-                    </div>
-                    <div className="bg-[#FCFAED] p-4 rounded-xl">
-                      <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2">
-                        <FaList /> Variantes
-                      </h4>
-                      {selectedProduct.variants && selectedProduct.variants.length > 0 ? (
-                        <div className="space-y-2">
-                          {selectedProduct.variants.map((variant, idx) => (
-                            <div key={idx} className="border-b border-gray-200 pb-2 last:border-0">
-                              <p className="font-medium">{variant.size}</p>
-                              <p className="text-sm text-gray-600">Prix: {variant.price} DT</p>
-                              {variant.weight && <p className="text-sm text-gray-600">Poids: {variant.weight}</p>}
+                            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-[var(--primary-color)] px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                              Principale
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                          {selectedProduct.images.length > 1 && (
+                            <div className="grid grid-cols-3 gap-3">
+                              {selectedProduct.images.map((img, idx) => {
+                                if (idx === (selectedProduct.main_image_index || 0)) return null;
+                                return (
+                                  <div key={idx} className="aspect-square rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:border-[var(--secondary-color)] transition-all cursor-pointer">
+                                    <img
+                                      src={getImageUrl(selectedProduct.id, img)}
+                                      alt={`${selectedProduct.name} ${idx}`}
+                                      className="w-full h-full object-cover hover:opacity-80"
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </>
                       ) : (
-                        <p className="text-gray-500">Aucune variante</p>
+                        <div className="w-full aspect-square rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
+                          <FaImage size={64} className="mb-4 opacity-50" />
+                          <p className="font-medium">Aucune image disponible</p>
+                        </div>
                       )}
                     </div>
+
+                    {/* Colonne Droite: Infos & Variantes */}
+                    <div className="flex flex-col gap-6">
+                      {/* Description */}
+                      <div className="bg-orange-50/50 rounded-2xl p-6 border border-orange-100">
+                        <h4 className="flex items-center gap-2 text-lg font-bold text-orange-900 mb-3">
+                          <FaInfoCircle className="text-orange-500" /> Description
+                        </h4>
+                        <p className="text-orange-900/80 leading-relaxed text-sm">
+                          {selectedProduct.description || 'Aucune description fournie.'}
+                        </p>
+                      </div>
+
+                      {/* Ingrédients */}
+                      {selectedProduct.ingredients && (
+                        <div className="bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100">
+                          <h4 className="flex items-center gap-2 text-lg font-bold text-emerald-900 mb-3">
+                            <FaWeightHanging className="text-emerald-500" /> Ingrédients
+                          </h4>
+                          <p className="text-emerald-900/80 leading-relaxed text-sm">
+                            {formatIngredients(selectedProduct.ingredients)}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Variantes */}
+                      <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100 flex-1">
+                        <h4 className="flex items-center gap-2 text-lg font-bold text-blue-900 mb-4">
+                          <FaList className="text-blue-500" /> Variantes
+                        </h4>
+                        {selectedProduct.variants && selectedProduct.variants.length > 0 ? (
+                          <div className="space-y-3">
+                            {selectedProduct.variants.map((variant, idx) => (
+                              <div key={idx} className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-blue-50 hover:border-blue-200 transition-all group">
+                                <span className="font-bold text-gray-700 bg-gray-100 px-3 py-1 rounded-lg group-hover:bg-blue-100 group-hover:text-blue-800 transition">
+                                  {variant.size}
+                                </span>
+                                <div className="text-right">
+                                  <span className="block text-lg font-black text-[var(--secondary-color)]">
+                                    {parseFloat(variant.price).toFixed(3)} DT
+                                  </span>
+                                  {variant.weight && (
+                                    <span className="block text-xs text-gray-400 font-medium">Poids: {variant.weight}</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-blue-900/60 font-medium text-center py-4">Aucune variante disponible</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Ingrédients */}
-                  <div className="bg-[#FCFAED] p-4 rounded-xl">
-                    <h4 className="font-semibold text-[var(--primary-color)] mb-3 flex items-center gap-2">
-                      <FaWeightHanging /> Ingrédients
-                    </h4>
-                    <p>{formatIngredients(selectedProduct.ingredients)}</p>
-                  </div>
-
-                  {/* Métadonnées */}
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
-                    <p>ID: {selectedProduct.id}</p>
+                  {/* Métadonnées & ID */}
+                  <div className="mt-6 flex justify-between text-xs font-semibold text-gray-400 border-t border-gray-100 pt-4">
+                    <span>ID: {selectedProduct.id}</span>
+                    <span>Type: {selectedProduct.type || 'Standard'}</span>
                     {selectedProduct.created_at && (
-                      <p>Créé le: {formatDate(selectedProduct.created_at)}</p>
+                      <span>Créé le: {formatDate(selectedProduct.created_at)}</span>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Boutons */}
-              <div className="flex justify-between mt-6">
+              {/* Boutons Footer */}
+              <div className="bg-gray-50 p-6 flex justify-between items-center flex-shrink-0">
                 {productSourceOrder ? (
                   <button
                     onClick={handleBackToOrder}
-                    className="px-5 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition flex items-center gap-2 font-medium"
+                    className="px-5 py-3 hover:bg-gray-200 text-gray-700 rounded-xl transition flex items-center gap-2 font-bold text-sm bg-white border border-gray-200 shadow-sm"
                   >
                     <FaArrowLeft /> Retour commande #{productSourceOrder.id}
                   </button>
                 ) : <div />}
                 <button
                   onClick={() => setShowProductDetails(false)}
-                  className="px-6 py-3 bg-[var(--secondary-color)] text-white rounded-xl hover:bg-[var(--primary-color)] transition"
+                  className="px-8 py-3.5 bg-gray-900 text-white rounded-xl hover:bg-black hover:shadow-lg transition-all font-bold text-sm"
                 >
-                  Fermer
+                  {t("admin.close")}
                 </button>
               </div>
             </div>
